@@ -1,0 +1,18 @@
+# Preparation only. The approval guard fails closed until a specific branch is approved.
+# This file does not create an Amplify app or authorize any deployment.
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - nvm use 24
+        - node scripts/check-deploy-approval.cjs
+    build:
+      commands:
+        - npm test
+        - npm run build
+  artifacts:
+    baseDirectory: dist
+    files:
+      - '**/*'
+# No backend, credentials, dependency installation or cache is required.
