@@ -1,0 +1,13 @@
+{
+  "name": "mac-tecnologia",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Prototipo estático bilingüe de MAC Tecnología",
+  "scripts": {
+    "test": "node --check public/assets/app.js && node --check public/assets/content.js && node --test tests/*.test.cjs",
+    "build": "node scripts/build.cjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
