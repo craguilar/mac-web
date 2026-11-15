@@ -22,8 +22,17 @@ function assertDeployApproval(env, checkoutCommit) {
 
 if (require.main === module) {
   try {
-    const checkoutCommit = require('node:child_process').execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim();
+    const execFileSync = require('node:child_process').execFileSync;
+    const git = args => execFileSync('git', args, {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']}).trim();
+    const checkoutCommit = git(['rev-parse', '--verify', 'HEAD']);
     assertDeployApproval(process.env, checkoutCommit);
+    if (git(['status', '--porcelain', '--untracked-files=no'])) {
+      throw new Error('Tracked source changed after checkout. Deploy only the reviewed commit.');
+    }
+    // Include ignored files too: none may silently enter the copied public artifact.
+    if (git(['ls-files', '--others', '--', 'public', 'licenses', 'scripts', 'tests', 'package.json', 'amplify.yml', 'THIRD_PARTY_NOTICES.md'])) {
+      throw new Error('Untracked build inputs are present. Deploy only committed, reviewed files.');
+    }
     console.log('Branch deployment gate passed. Tests and build must still succeed.');
   } catch (error) {
     console.error(error.message);
