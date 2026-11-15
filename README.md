@@ -26,13 +26,17 @@ npm test
 npm run build
 ```
 
-`npm test` usa las herramientas incorporadas de Node.js: valida sintaxis, referencias locales, contenido bilingüe aprobado y límites del prototipo. `npm run build` copia `public/` a `dist/`; no publica ni despliega.
+`npm test` usa las herramientas incorporadas de Node.js: valida sintaxis, referencias locales, contenido bilingüe aprobado, contraste de contacto, controles de vista previa, licencias de fuentes y límites del prototipo. Son comprobaciones estáticas, no una auditoría completa de accesibilidad. `npm run build` copia `public/`, licencias y avisos a `dist/`; no publica ni despliega.
+
+## Diseño aprobado
+
+La versión actual incorpora textos de servicios más concretos, contenido visible sin expansiones automáticas, un encabezado móvil más compacto y el texto aprobado de Nosotros. El formulario muestra nombre, correo y mensaje; empresa y tema son opcionales. Permite revisar y copiar el texto, volver a editar y deshacer el borrado mientras la página siga abierta.
 
 ## Estructura
 
 - `public/index.html`: documento, metadatos y carga de recursos.
 - `public/assets/content.js`: textos en español e inglés.
-- `public/assets/app.js`: navegación, idioma, ilustración y vista previa del formulario.
+- `public/assets/app.js`: navegación, idioma, ilustración y vista previa local del formulario.
 - `public/assets/styles.css`: diseño adaptable y estilos de accesibilidad.
 - `public/assets/fonts/`: fuentes locales con licencias incluidas.
 - `licenses/` y `THIRD_PARTY_NOTICES.md`: avisos y procedencia de las fuentes.
@@ -40,7 +44,7 @@ npm run build
 
 ## Alcance y pendientes
 
-- El formulario **no envía ni guarda mensajes**. Valida los campos y muestra una vista previa en el navegador. Los datos se mantienen solo en memoria mientras la página está abierta.
+- El formulario **no envía mensajes ni los guarda de forma persistente**. Valida los campos y muestra una vista previa en el navegador. Los datos y el último borrado reversible se mantienen solo en memoria mientras la página está abierta. Copiar escribe en el portapapeles únicamente cuando la persona pulsa ese botón; si no está disponible, se ofrece texto seleccionable.
 - No hay servidor de contacto, analítica, cookies, almacenamiento persistente, credenciales, integración de correo ni automatización de despliegue.
 - Los servicios y el destino de contacto requieren confirmación antes de producción.
 - Antes del lanzamiento: confirmar dominio y contacto, implementar y probar el envío real, definir los avisos de privacidad necesarios, configurar cabeceras de seguridad del alojamiento y completar revisión de accesibilidad y compatibilidad de navegadores.

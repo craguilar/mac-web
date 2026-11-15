@@ -57,3 +57,37 @@ test('licensed font bytes match the audited asset checksums', () => {
   }
   for (const name of ['Apache-2.0.txt', 'LICENSE.OFL']) assert.ok(fs.existsSync(path.join(root, 'licenses', name)));
 });
+
+test('streamlined design has visible services and optional contact details', () => {
+  assert.doesNotMatch(app, /layerStudy|data-layer-button/);
+  assert.match(app, /class="optional-details full"/);
+  assert.match(app, /if\(!value\)return/);
+  assert.match(app, /if\(form\.elements\.topic\.value\)/);
+  assert.match(css, /max-width:155px/);
+  assert.equal(content.es.st[0], 'Crear o mejorar software');
+  assert.equal(content.en.st[2], 'Improve testing and releases');
+  assert.equal(context.window.consultingExtra.es.scope, 'Posibles alcances');
+});
+
+test('message review offers accessible copy, fallback and reversible clearing', () => {
+  assert.match(app, /aria-describedby="review-note"/);
+  assert.match(app, /navigator\.clipboard\.writeText\(message\)/);
+  assert.match(app, /fallback\.querySelector\('textarea'\)\.value=message/);
+  assert.match(app, /clearSnapshot=values/);
+  assert.match(app, /undo\.addEventListener\('click'/);
+  assert.match(app, /form\.querySelector\('\[type=submit\]'\)\.focus/);
+  assert.match(app, /maxlength="3000"/);
+});
+
+test('contact body, input and placeholder colors have at least 4.5:1 contrast', () => {
+  function luminance(hex) {
+    const rgb = hex.match(/../g).map(v => parseInt(v, 16) / 255)
+      .map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
+    return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
+  }
+  for (const [fg, bg] of [['fff3e8', '9e482f'], ['253b30', 'f5f1e8'], ['596b5d', 'f5f1e8']]) {
+    const a = luminance(fg), b = luminance(bg);
+    assert.ok((Math.max(a, b) + .05) / (Math.min(a, b) + .05) >= 4.5);
+    assert.ok(css.includes('#' + fg) && css.includes('#' + bg));
+  }
+});
