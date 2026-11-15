@@ -51,3 +51,9 @@ No se inventarán correo, razón social, domicilio, periodos de conservación ni
 - Google, configuración GA4: https://developers.google.com/analytics/devguides/collection/ga4/reference/config
 
 Este documento es un checklist técnico, no un aviso de privacidad ni asesoría legal.
+
+## Componentes implementados en el seguimiento
+
+- `consent-controller.js`: máquina de estado sin almacenamiento ni carga de terceros; requiere un adaptador auditado, no incluido. Inicia solo con opt-in/configuración válida, filtra eventos y detiene envío al retirar consentimiento. El adaptador debe descartar colas, cancelar cargas pendientes y limpiar cookies cuando corresponda.
+- `contact-validation.js`: contrato propuesto del futuro endpoint: nombre opcional (100 caracteres), correo obligatorio (254), mensaje obligatorio (4000), idioma ES/EN. Recorta espacios, descarta campos desconocidos y rechaza controles/inyección de cabeceras. No sustituye validación de servidor, escape de salida, controles de abuso ni verificación de entrega.
+- Ambos módulos permanecen sin enlazar a la página; no cambian la experiencia aprobada ni simulan envío. Tests con adaptador falso, sin Google ni correo real.
