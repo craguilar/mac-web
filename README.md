@@ -2,6 +2,10 @@
 
 Prototipo bilingüe de la página de MAC Tecnología. Esta exportación contiene únicamente la dirección visual seleccionada: Monolito suave.
 
+## Continuar el proyecto en Codex
+
+Consultar [el plan de lanzamiento y handoff](docs/PROJECT_PLAN.md): decisiones, estado de los PRs, pasos de arranque, fases, dependencias y criterios de aceptación. La implementación de analítica/contacto y CI/Amplify sigue en PRs separados; el plan distingue preparación de activación real.
+
 ## Ejecutar localmente
 
 El sitio es HTML, CSS y JavaScript estático, sin dependencias de ejecución ni instalación de paquetes.
