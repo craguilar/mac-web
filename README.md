@@ -1,8 +1,3 @@
-# mac-web
-Web for MAC 
-
----
-
 # MAC Tecnología
 
 Prototipo bilingüe de la página de MAC Tecnología. Esta exportación contiene únicamente la dirección visual seleccionada: Monolito suave.
