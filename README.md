@@ -2,9 +2,9 @@
 
 Prototipo bilingüe de la página de MAC Tecnología. Esta exportación contiene únicamente la dirección visual seleccionada: Monolito suave.
 
-## Continuar el proyecto en Codex
+## Especificación de lanzamiento
 
-Consultar [el plan de lanzamiento y handoff](docs/PROJECT_PLAN.md): decisiones, estado de los PRs, pasos de arranque, fases, dependencias y criterios de aceptación. La implementación de analítica/contacto y CI/Amplify sigue en PRs separados; el plan distingue preparación de activación real.
+La [especificación técnica](docs/PROJECT_PLAN.md) define los requisitos del sitio bilingüe, el contrato de contacto, el consentimiento para GA4 y los criterios de aceptación para desarrollo y producción en AWS Amplify Hosting.
 
 ## Ejecutar localmente
 

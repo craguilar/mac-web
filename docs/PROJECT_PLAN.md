@@ -1,185 +1,118 @@
-# MAC Tecnología: plan de lanzamiento y arranque en Codex
+# Especificación de lanzamiento de MAC Tecnología
 
-Última verificación: 16 de noviembre de 2026. Este documento es el punto de entrada para continuar el proyecto sin depender del historial del chat.
+## Producto y arquitectura
 
-## 1. Objetivo y decisiones
+El sitio corporativo de MAC Tecnología se dirige a empresas del sur de México y de la Ciudad de México. El lanzamiento debe ofrecer la misma información y el mismo flujo de contacto en español e inglés, permitir consultas reales y medir interacciones con consentimiento.
 
-Lanzar la página corporativa bilingüe de **MAC Tecnología**, orientada a empresas del sur de México y Ciudad de México, con diseño móvil cuidado, contacto real, medición responsable y despliegues reproducibles.
+| Decisión | Requisito |
+| --- | --- |
+| Diseño y contenido | Conservar Monolito suave, sus colores y fluidez en móvil, la identidad chiapaneca discreta y el tono cercano y práctico. Mantener «Buenas ideas. Tecnología que las hace realidad.», el texto aprobado de Nosotros y la oferta de servicios vigente. Toda mención de clientes, testimonios, resultados o certificaciones requiere evidencia aprobada. |
+| Arquitectura | Servir HTML, CSS y JavaScript estáticos desde el repositorio público `craguilar/mac-web`. Mantener la navegación por anclas y `?lang=es` / `?lang=en`. El alcance excluye Flowly y una migración a React o Next.js. El envío del formulario requiere un servicio de contacto independiente del alojamiento estático. |
+| Alojamiento | **AWS Amplify Hosting** es la plataforma elegida. Se evaluaron Cloudflare y el alojamiento directo en S3. La primera entrega en Amplify es un entorno de desarrollo con acceso restringido. |
+| Dominio | El dominio elegido es `mactecnologia.com.mx`. La puesta en producción depende de confirmar su disponibilidad o titularidad, el control del DNS y la variante canónica (raíz o `www`). |
 
-- **Diseño aprobado:** Monolito suave. Conservar colores, fluidez, identidad chiapaneca discreta y tono cercano, práctico y sin presumir. No rediseñar desde cero.
-- **Frase:** “Buenas ideas. Tecnología que las hace realidad.”
-- **Contenido:** español e inglés; conservar el texto aprobado de Nosotros y los servicios actuales. No inventar clientes, testimonios, resultados ni certificaciones.
-- **Código:** este repositorio público, `craguilar/mac-web`.
-- **Hosting elegido:** AWS Amplify Hosting. Cloudflare y S3 directo fueron alternativas evaluadas, no el plan vigente.
-- **Dominio elegido:** `mactecnologia.com.mx`. Es una intención, no prueba de compra, disponibilidad, control de DNS ni despliegue.
-- **Alcance:** sitio corporativo estático. No es Flowly ni requiere convertirlo en una aplicación React/Next.js.
-- **Publicación:** preparar e integrar mediante PRs. No fusionar, conectar servicios, activar seguimiento, gastar en anuncios ni publicar producción solo porque este plan exista.
+## Base de implementación
 
-## 2. Estado comprobado y trabajo existente
+Estado de referencia del 16 de noviembre de 2026. Los resultados de pruebas corresponden a las revisiones indicadas.
 
-Revalidar estas referencias al comenzar: los PRs y sus checks pueden cambiar.
+| Revisión | Comportamiento disponible |
+| --- | --- |
+| [`main` en `431cf5a`](https://github.com/craguilar/mac-web/tree/431cf5ae11e2e8d34e4dcfc8411c182f3224016d) | Prototipo bilingüe aprobado. El formulario permite revisar, copiar y editar un borrador en memoria. La página carece de envío de correo, persistencia de mensajes e integración GA4. |
+| [PR #1](https://github.com/craguilar/mac-web/pull/1) · borrador en `0dab065` | Incluye el validador de contacto, la política de eventos y el controlador de consentimiento. Los módulos siguen desconectados de la página. El [contrato propuesto](https://github.com/craguilar/mac-web/blob/0dab065535b1e6a21364263cd11f26021d1f835a/docs/analytics-contact-readiness.md) describe las pruebas con un adaptador simulado. |
+| [PR #2](https://github.com/craguilar/mac-web/pull/2) · borrador en `df16ffc` | Incluye CI de validación, `amplify.yml` y el control de despliegue por rama y commit. El [procedimiento de Amplify](https://github.com/craguilar/mac-web/blob/df16ffc84c27e644937ed1d073a539e76668a056/docs/launch-runbook.md) describe la configuración pendiente. |
 
-| Elemento | Estado al verificar | Qué significa |
-| --- | --- | --- |
-| `main` | `431cf5ae11e2e8d34e4dcfc8411c182f3224016d` | Prototipo estático aprobado; último cambio ajusta README. Diseño sincronizado previamente en `61b92ba`. |
-| [PR #1](https://github.com/craguilar/mac-web/pull/1) | Abierto, draft, sin merge; `0dab065535b1e6a21364263cd11f26021d1f835a` | Política de analítica, controlador de consentimiento y validación de contacto, todavía desconectados de la página. |
-| [PR #2](https://github.com/craguilar/mac-web/pull/2) | Abierto, draft, sin merge; `df16ffc84c27e644937ed1d073a539e76668a056` | CI de validación, build spec de Amplify y guard de despliegue que falla cerrado. No es una conexión real a AWS. |
-| Formulario | Solo vista previa local | No envía correo ni guarda mensajes de forma persistente. |
-| Analítica | No activada | No existe integración GA4 real ni consentimiento visible conectado. |
-| AWS, DNS y producción | Sin verificación de configuración real en este trabajo | No asumir que existe una aplicación, región, dominio o despliegue listo. |
+Los dos PR seguían abiertos y sin fusionar en esa revisión. Cada uno reportó 17 pruebas y una compilación local correctas. La validación local conjunta completó 25 pruebas y compiló el sitio correctamente. El [CI de #2](https://github.com/craguilar/mac-web/actions/runs/43752475117) pasó en `df16ffc`. La aplicación AWS, sus permisos, el DNS y el despliegue de producción siguen pendientes de verificación.
 
-Evidencia histórica, no garantía del próximo commit: cada PR reporta 17 pruebas y build locales correctos; su combinación reportó 25. El [CI de #2](https://github.com/craguilar/mac-web/actions/runs/43752475117) pasó para `df16ffc`. Volver a ejecutar y revisar checks después de cada integración. No duplicar estos PRs ni copiar sus módulos a otra implementación sin revisar.
+## A. Integración y verificación local
 
-Documentos detallados disponibles en las ramas de los PRs mientras no estén fusionados:
-- [Runbook de lanzamiento, PR #2](https://github.com/craguilar/mac-web/blob/prep/ci-amplify-launch/docs/launch-runbook.md).
-- [Analítica/contacto/privacidad, PR #1](https://github.com/craguilar/mac-web/blob/prep/analytics-contact-privacy/docs/analytics-contact-readiness.md).
+Revisar #1 y #2 por separado contra el `main` vigente. Reutilizar sus módulos, resolver incompatibilidades en ramas de trabajo y probar ambos cambios juntos en una rama temporal. Esta etapa puede completarse sin credenciales AWS ni despliegues. Conservar el trabajo local y el historial de las ramas durante la integración.
 
-## 3. Arranque como nuevo proyecto Codex
-
-Abrir un checkout de este repositorio. Usar Node 24 para coincidir con el CI propuesto; hoy no hay dependencias npm ni lockfile, por lo que no hace falta instalar paquetes.
+Desde la raíz del repositorio, con Node.js 24 para reproducir el entorno de CI, ejecutar las comprobaciones en cada candidato y en la combinación. La versión de referencia carece de dependencias npm y de archivo de bloqueo.
 
 ```sh
-git clone https://github.com/craguilar/mac-web.git
-cd mac-web
-git status --short
-git log -1 --oneline
 npm test
 npm run build
-python3 -m http.server 8000 --directory dist
+git diff --check
 ```
 
-Abrir `http://localhost:8000/?lang=es` y `?lang=en`. Python es solo un servidor estático local opcional, no una dependencia del producto ni de Amplify. No hay comando `npm run dev` actualmente.
+Para la inspección en navegador se puede servir `dist/` con `python3 -m http.server 8000 --directory dist` y abrir `http://localhost:8000/?lang=es` y `http://localhost:8000/?lang=en`.
 
-Para leer los cambios pendientes sin modificarlos:
+**Aceptación.** Registrar los SHA de base y candidatos, las pruebas, el build y las funciones que siguen desactivadas. Contrastar la oferta del README con los textos de servicios aprobados. Actualizar las indicaciones de prototipo cuando se haya verificado la función correspondiente.
 
-```sh
-git fetch origin refs/pull/1/head:refs/remotes/origin/pr-1
-git fetch origin refs/pull/2/head:refs/remotes/origin/pr-2
-git diff origin/main...origin/pr-1
-git diff origin/main...origin/pr-2
-```
+## B. Desarrollo protegido en Amplify
 
-Trabajar en una rama por cambio. Conservar cualquier trabajo local ajeno. No hacer reset destructivo, force-push, merge ni despliegue como parte de esta inspección.
+La configuración requiere cuenta y región confirmadas, responsable operativo, límite de gasto y autorización de acceso a GitHub. Inventariar aplicaciones, ramas, dominios y conexiones existentes antes de crear recursos. Conceder a Amplify el acceso mínimo al repositorio. La asignación propuesta es `dev` para desarrollo y `main` para producción, pendiente de aprobación.
 
-### Prompt inicial para Codex
+1. Usar la configuración de #2 para ejecutar `npm test` y `npm run build` con Node.js 24 y publicar únicamente `dist/`. El sitio se sirve como contenido estático, sin renderizado en servidor.
+2. Desactivar los builds automáticos y las vistas previas de PR durante la configuración inicial. Revisar los disparadores externos incluso cuando un commit incluya `[skip-cd]`.
+3. Restringir el acceso antes de compartir la URL. Con autorización para esa rama y SHA, desplegar el candidato exacto y retirar la aprobación puntual al terminar.
 
-> Continúa MAC Tecnología en craguilar/mac-web. Lee README.md y docs/PROJECT_PLAN.md, inspecciona main y los PRs #1 y #2 vigentes, y ejecuta las pruebas y el build. Preserva Monolito suave, ES/EN y el carácter chiapaneco discreto. Distingue lo implementado de lo pendiente. Empieza por el siguiente paso de la fase A, sin duplicar los PRs existentes; prepara un cambio pequeño con pruebas y un PR draft. No publiques producción, actives seguimiento/envíos reales, cambies permisos o DNS, ni inventes valores de configuración. Documenta qué verificaste y qué falta. Consulta las instrucciones y skills relevantes del checkout si existen.
+**Aceptación.** Una sesión anónima no puede acceder al sitio de desarrollo. En una sesión autorizada, la URL sirve por HTTPS el sitio y sus recursos. Registrar rama, SHA e identificador del build. Una directiva `noindex` por sí sola no cumple el requisito de acceso.
 
-## 4. Plan por fases
+## C. Contacto y privacidad
 
-### A. Consolidar la base y preparar integración
+La implementación puede empezar con un servicio simulado. Para habilitar envíos reales deben estar confirmados el destinatario, el remitente, el canal, el responsable de atención y el plazo de respuesta. Elegir el servicio mínimo que cumpla el contrato. Un endpoint serverless con Amazon SES es una opción pendiente de decisión.
 
-**Siguiente paso recomendado, sin necesitar AWS.**
-
-- [ ] Revisar #1 y #2 contra el `main` vigente y resolver cualquier incompatibilidad en ramas de trabajo.
-- [ ] Probar su combinación sin publicar un entorno ni asumir que ya están fusionados.
-- [ ] Mantener los PRs separados y presentar resultados para revisión; fusionar únicamente con autorización.
-- [ ] Corregir textos de prototipo obsoletos solo cuando la funcionalidad correspondiente sea real. El README aún dice que los servicios requieren confirmación; contrastarlo con los textos ya aprobados, sin inventar nuevas ofertas.
-- [ ] Mantener este plan actualizado con PR, SHA y pruebas, no con estados vagos como “listo”.
-
-**Salida:** cambios revisables, pruebas/build correctos y una lista clara de lo que sigue desactivado.
-
-### B. Conectar un entorno dev protegido en Amplify
-
-**Bloqueado por configuración/acceso, no por diseño.**
-
-- [ ] Confirmar con Carlos cuenta AWS, región, responsable operativo y límite de gasto. No guardar credenciales ni detalles privados de cuenta en el repo público.
-- [ ] Inspeccionar apps, ramas y dominios existentes antes de crear recursos duplicados.
-- [ ] Autorizar la integración GitHub/Amplify con acceso mínimo al repo. Revisar qué permisos se conceden.
-- [ ] Propuesta: `dev` para validación y `main` para producción; las ramas por sí solas no son entornos.
-- [ ] Configurar el build según #2: Node 24, `npm test`, `npm run build`, artefactos `dist/`. Sin backend/SSR para el sitio.
-- [ ] Proteger dev antes de compartirlo. Comprobar con una sesión no autenticada que no es público; `noindex` no sustituye control de acceso.
-- [ ] Mantener previews automáticos y auto-build apagados durante la configuración inicial. Revisar hooks externos y no confiar solo en `[skip-cd]`.
-- [ ] Tras autorización concreta, desplegar el SHA aprobado y verificar URL, archivos, HTTPS y protección.
-
-**Salida:** dev comprobado, acceso restringido y registro de commit/build. No producción.
-
-### C. Contacto real y privacidad
-
-Puede desarrollarse con mocks mientras se resuelven los datos externos.
-
-- [ ] Confirmar destinatario, remitente, canal, responsable y plazo de atención.
-- [ ] Elegir el backend de contacto más pequeño adecuado. Si se elige AWS, evaluar endpoint serverless + SES; es una propuesta, no infraestructura creada.
-- [ ] Alinear el contrato con la UI: hoy muestra empresa/tema opcionales, pero el validador de #1 solo conserva nombre, email, mensaje e idioma. Decidir qué campos son necesarios antes de conectar.
-- [ ] Reutilizar la validación de #1 también del lado servidor; límites de tamaño, origen permitido, prevención de inyección, rate limit y protección contra abuso. CORS por sí solo no evita bots.
-- [ ] Mantener secretos únicamente en el servidor. No registrar cuerpos de mensajes ni PII en logs/analítica.
-- [ ] Implementar estados accesibles ES/EN: validación, enviando, error, timeout, reintento y éxito. Evitar doble envío y conservar texto ante error.
-- [ ] Definir responsable, finalidades, proveedores, conservación y mecanismo de derechos; revisar aviso de privacidad ES/EN, sin inventar identidad legal ni plazos.
-- [ ] Si se usa SES, verificar sandbox, remitente/dominio, SPF/DKIM/DMARC, rebotes y permisos mínimos.
-- [ ] Probar con datos sintéticos y destinatario autorizado. Distinguir “servicio aceptó el envío” de “correo recibido”.
-
-**Salida:** prueba de recepción comprobada, fallos manejados, aviso visible y sin falsas confirmaciones de envío.
-
-### D. Analítica con consentimiento
-
-- [ ] Confirmar propiedad GA4, ID real, acceso y hosts de producción permitidos.
-- [ ] Conectar la política/controlador de #1 a UI ES/EN: aceptar, rechazar y retirar consentimiento, sin bloquear contacto.
-- [ ] Implementar adaptador real y gestión de preferencia/versionado; comprobar revocación, colas, cargas pendientes y cookies aplicables.
-- [ ] Antes de aceptar: cero solicitudes a Google. En dev, previews y localhost: tracking desactivado.
-- [ ] No enviar nombres, correos, texto de mensajes, parámetros de URL ni fragmentos. Auditar referrer y configuración automática.
-- [ ] Usar eventos limitados y documentados: contacto abierto, servicio visto, idioma cambiado. Habilitar `generate_lead` solo tras envío real verificado, sin duplicados.
-- [ ] Validar en navegador y GA4 con consentimiento y datos sintéticos; las pruebas con adaptador falso no prueban Google.
-
-**Salida:** medición comprobada, consentimiento efectivo y ninguna filtración de datos personales.
-
-### E. SEO, seguridad, accesibilidad y calidad final
-
-- [ ] Revisar títulos/descripciones ES/EN, canonical, hreflang, sitemap y robots para el dominio confirmado. Resolver metadatos iniciales en inglés antes de afirmar SEO bilingüe completo.
-- [ ] Probar indexación de contenido renderizado con JavaScript; no agregar un framework sin una necesidad demostrada.
-- [ ] Configurar y verificar CSP, headers de seguridad y caché sin romper fuentes/SVG/formulario. Evitar `immutable` largo en assets sin hash.
-- [ ] No añadir una reescritura SPA 200 global: el sitio usa anclas y `?lang=`, no un router de cliente.
-- [ ] Revisar ES/EN a 320, 390, 768 y 1440 px; Safari/iOS, Chrome/Android, teclado, foco, contraste, lectura y movimiento reducido.
-- [ ] Probar navegación y contacto interrumpidos/repetidos: volver/avanzar, cambiar idioma, editar, cerrar, doble clic, borrar/deshacer y error de red.
-- [ ] Comprobar recursos, licencias, enlaces rotos, rendimiento móvil y ausencia de secretos/archivos privados en `dist/`.
-- [ ] Definir monitoreo de disponibilidad/errores y alertas de gasto. No prometer seguridad absoluta; documentar riesgos residuales.
-
-**Salida:** evidencia de navegador y móvil, checks correctos y pendientes críticos resueltos.
-
-### F. Producción y despliegue continuo
-
-**Separar el objetivo final del guard temporal actual.**
-
-El #2 exige aprobación por rama y SHA exacto y bloquea PR previews. Eso es una fase de preparación segura, **no CD automático terminado**. No quitar el guard para “hacer pasar” un build.
-
-- [ ] Antes de CD, acordar explícitamente qué cambios/rama pueden desplegarse automáticamente, audiencia, presupuesto, revisión exigida y rollback.
-- [ ] Preparar un PR posterior que adapte el mecanismo de aprobación a esa política: CI obligatorio, cambios revisados y promoción a producción controlada. Documentar quién aprueba y cómo se revoca; no usar un flag global permanente.
-- [ ] Configurar protecciones reales del repo/entorno con autorización. Su existencia no puede deducirse del YAML.
-- [ ] Confirmar compra/control de `mactecnologia.com.mx`, variante canónica raíz/www, DNS y certificado. No comprar ni modificar DNS sin autorización.
-- [ ] Aprobar candidato exacto; verificar build, HTTPS, contacto y consentimiento antes/después del cambio de dominio.
-- [ ] Registrar versión desplegada y rollback probado. Propuesta: tags de versión `vX.Y.Z` para releases; dev/prod son entornos, no dos tags móviles que sustituyan historial.
-- [ ] Para el primer lanzamiento, conservar el sitio anterior si existe y tener plan de DNS. Después, restaurar un build conocido o revertir mediante PR; no reescribir `main`.
-
-**Salida:** dominio real funcionando, release trazable y proceso de CD autorizado y probado.
-
-### G. Marketing, después del lanzamiento
-
-- [ ] Confirmar objetivo, audiencia CDMX/Chiapas, oferta, presupuesto y cuenta publicitaria.
-- [ ] Preparar anuncios y landing coherentes, UTMs sin PII y conversiones de contacto real.
-- [ ] Empezar un piloto limitado solo con aprobación de gasto/campaña.
-- [ ] Revisar calidad de leads, conversiones y costo; no activar remarketing ni atribuir ventas a clics por defecto.
-
-**Salida:** campaña medible con presupuesto aprobado. No hay campaña ni inversión activa como resultado de este plan.
-
-## 5. Lo que necesita Carlos y lo que puede avanzar Codex
-
-| Necesidad | Para qué | Se puede avanzar mientras tanto |
+| Campo | Formulario actual | Contrato propuesto en #1 |
 | --- | --- | --- |
-| Cuenta/región AWS y acceso seguro | Inspeccionar y conectar Amplify | Revisión de PRs, pruebas, código y documentación |
-| Autorización GitHub/Amplify y política de despliegue | Conexión/CD y permisos | CI de validación sin credenciales |
-| Dominio y DNS confirmados | HTTPS, canonical y producción | SEO con configuración explícita, sin fingir dominio activo |
-| Contacto y privacidad confirmados | Envíos y aviso reales | Mocks, validación, UX y pruebas de fallo |
-| Propiedad/ID GA4 y hosts | Verificación de tracking | Consentimiento y pruebas negativas sin Google |
-| Presupuesto y aprobación de campaña | Ads y costos | Textos y plan, sin gasto |
+| Nombre | `name` obligatorio, hasta 160 caracteres | `name` opcional, hasta 100 |
+| Correo | `email` obligatorio, hasta 254 | `email` obligatorio, hasta 254 |
+| Mensaje | `problem` obligatorio, hasta 3000 | `message` obligatorio, hasta 4000 |
+| Empresa y tema | `company` y `topic` opcionales | El validador descarta ambos |
+| Idioma | Selección de la página | `language` obligatorio, `es` o `en` |
 
-No pedir secretos en chat, commits, PRs ni este documento. Usar el mecanismo seguro del entorno/servicio. Los datos de formularios de visitantes tampoco pertenecen en el repositorio público.
+Antes de conectar el formulario, acordar qué campos se enviarán, cuáles serán obligatorios y sus límites. Alinear nombres, validación y textos de ambas interfaces. Ningún campo ofrecido para el envío debe descartarse silenciosamente.
 
-## 6. Regla de cierre de cada PR
+- **Servidor.** Recibir por HTTPS, reutilizar la validación de #1 y aplicar límites de longitud y de tamaño de petición. Validar el origen permitido, bloquear la inyección de cabeceras, limitar la frecuencia e incorporar protección contra abuso además de CORS. Custodiar los secretos en el servidor. Excluir cuerpos de mensajes y datos personales de registros y analítica.
+- **Interfaz.** Mantener el rótulo de vista previa hasta habilitar el servicio. Mostrar estados accesibles en ES/EN para errores de validación, envío en curso, límite de frecuencia, fallo temporal, tiempo de espera, reintento y éxito. Conservar el texto tras un fallo e impedir envíos duplicados. Mostrar éxito únicamente cuando el servicio de entrega acepte el envío.
+- **Privacidad y correo.** Publicar un aviso ES/EN revisado que identifique al responsable, las finalidades, los proveedores, la conservación y el mecanismo para ejercer derechos. Estos datos requieren confirmación. Si se elige SES, comprobar restricciones de sandbox, remitente y dominio verificados, SPF/DKIM/DMARC, rebotes y permisos mínimos.
 
-1. Alcance pequeño y criterio de aceptación concreto.
-2. Pruebas nuevas para lo cambiado; `npm test`, `npm run build` y `git diff --check`.
-3. Para UI/integraciones: evidencia de navegador, estados negativos y límites de cobertura.
-4. Check remoto del SHA exacto si existe CI. “No ejecutado” no significa “pasó”.
-5. PR draft con resumen sencillo: implementado, verificado, pendiente y riesgos. No fusionar/desplegar por completar el código.
-6. Actualizar este plan sin borrar decisiones anteriores importantes.
+**Aceptación.** Con datos sintéticos, probar campos inválidos, límites, fallo de red, reintento y doble clic. Para un envío válido, comprobar por separado la aceptación por el servicio y la recepción en el buzón autorizado. Verificar el aviso y los estados del formulario en ambos idiomas.
 
-Este PR de documentación no activa servicios ni cambia el comportamiento de la página.
+## D. Analítica con consentimiento
+
+La activación requiere la propiedad GA4, acceso, ID de medición real y lista exacta de hosts HTTPS de producción. Conectar la política y el controlador de #1 a controles ES/EN para aceptar, rechazar y retirar el consentimiento. Rechazar debe ser tan sencillo como aceptar. El contacto debe funcionar en cualquier estado de consentimiento.
+
+| Condición | Resultado verificable en el navegador |
+| --- | --- |
+| Perfil nuevo, decisión pendiente o rechazo | Cero solicitudes a Google. |
+| Desarrollo, vista previa de PR o localhost | Seguimiento desactivado, incluso si existe una preferencia de aceptación. |
+| Aceptación en un host autorizado | El adaptador real transmite solo `contact_open`, `service_view` y `language_change` con parámetros enumerados. Revisar la configuración automática y el referente para excluir datos personales, campos libres, consultas y fragmentos de URL. |
+| Retirada durante la carga o con eventos pendientes | Cancelar cargas, descartar colas, detener eventos y limpiar las cookies aplicables. Guardar la preferencia con su versión y respetarla al recargar. |
+| Vista previa, clic, error o reintento de contacto | Ninguna conversión por estas acciones. Incorporar `generate_lead` solo tras verificar el envío real de la sección C, una vez por envío aceptado y con consentimiento vigente. |
+
+**Aceptación.** Inspeccionar las solicitudes de red en cada condición, incluida una URL con datos sintéticos en la consulta y el fragmento. En el host autorizado, contrastar los eventos permitidos y sus parámetros con los recibidos en la propiedad GA4. La validación previa con el adaptador simulado cubre únicamente el comportamiento local.
+
+## E. Calidad del candidato
+
+| Área | Comprobación de aceptación |
+| --- | --- |
+| SEO bilingüe | Comprobar título, descripción, canonical, hreflang, sitemap y robots para el dominio confirmado. Resolver los metadatos iniciales en inglés y comprobar la indexación del contenido generado con JavaScript en ambos idiomas. Mantener la arquitectura estática salvo necesidad demostrada. |
+| Alojamiento y seguridad | Verificar las cabeceras de seguridad, la CSP y la caché con las fuentes, SVG y formulario reales. Evitar caché prolongada con `immutable` en recursos sin hash. Conservar los errores para rutas inexistentes y excluir una reescritura global a HTTP 200. |
+| Interacción y accesibilidad | Probar ES/EN a 320, 390, 768 y 1440 px, Safari/iOS y Chrome/Android. Revisar teclado, foco, contraste, orden de lectura y movimiento reducido. Ejercitar volver/avanzar, cambio de idioma, edición, cierre, doble clic, borrado/deshacer y fallo de red. |
+| Artefacto y operación | Comprobar enlaces, recursos, licencias y rendimiento móvil. Inspeccionar `dist/` para descartar secretos y archivos privados. Definir monitoreo de disponibilidad y errores, alertas de gasto y riesgos residuales. |
+
+**Aceptación.** Adjuntar resultados de navegador y móvil al SHA candidato, con las incidencias críticas resueltas y los límites de las pruebas documentados.
+
+## F. Producción y despliegue continuo
+
+El control inicial de #2 rechaza vistas previas de PR y exige autorización para la rama y el SHA exactos. Mantenerlo activo hasta que se apruebe e implemente una política de despliegue continuo.
+
+1. Acordar ramas y cambios elegibles, audiencia, presupuesto, revisión obligatoria, responsables de aprobación, revocación y reversión. En un PR posterior, adaptar el control a esa política con CI obligatorio y promoción controlada. Excluir aprobaciones globales permanentes. Aplicar con autorización las protecciones de repositorio y entorno y comprobarlas en los servicios.
+2. Confirmar titularidad o compra autorizada de `mactecnologia.com.mx`, variante canónica, control DNS y certificado. Antes del primer cambio, preparar el plan de DNS y conservar el sitio anterior si existe. La compra del dominio, los cambios DNS y la publicación requieren autorización.
+3. Aprobar el SHA candidato. Comprobar build, HTTPS, recursos, contacto y consentimiento antes y después del cambio de dominio. Registrar el SHA y el build publicados. Se proponen etiquetas de versión `vX.Y.Z` para identificar las entregas.
+4. Probar la reversión a un build conocido o mediante un PR de reversión, preservando el historial de `main`. Volver a verificar la versión servida, HTTPS, navegación y contacto después de restaurar.
+
+**Aceptación.** El dominio canónico sirve el candidato aprobado. El registro de entrega permite identificarlo, reproducir la promoción autorizada y demostrar la recuperación de una versión conocida.
+
+## G. Campaña posterior al lanzamiento
+
+Confirmar objetivo, audiencia de Ciudad de México y Chiapas, oferta, cuenta publicitaria y presupuesto. Preparar anuncios y página de destino coherentes con la oferta, parámetros UTM sin datos personales y conversiones basadas en envíos reales. El piloto requiere aprobación expresa de campaña y gasto.
+
+**Aceptación.** El informe del piloto relaciona inversión, conversiones verificadas, calidad de las consultas y costo. El remarketing queda desactivado por defecto y los clics por sí solos no se contabilizan como ventas.
+
+## Evidencia por cambio
+
+Cada PR de implementación debe tener alcance acotado, criterio de aceptación y pruebas para el comportamiento modificado. Presentar el PR como borrador con el SHA, resultados locales, estado del CI remoto de ese SHA cuando exista, pendientes y riesgos. Marcar como pendientes las comprobaciones sin ejecutar. Para cambios de interfaz o integraciones, incluir evidencia en navegador y casos de fallo.
+
+Actualizar las decisiones y su evidencia al integrar cada cambio, conservando el historial. Mantener credenciales y datos privados de cuenta en el mecanismo seguro del entorno, y los datos de visitantes fuera del repositorio. Los chats, commits y PR deben excluir secretos y datos de formularios. La fusión y la activación de servicios requieren autorización explícita para su alcance.
