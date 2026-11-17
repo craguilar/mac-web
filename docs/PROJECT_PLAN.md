@@ -41,11 +41,11 @@ Para la inspección en navegador se puede servir `dist/` con `python3 -m http.se
 
 ## B. Desarrollo protegido en Amplify
 
-La configuración requiere cuenta y región confirmadas, responsable operativo, límite de gasto y autorización de acceso a GitHub. Inventariar aplicaciones, ramas, dominios y conexiones existentes antes de crear recursos. Conceder a Amplify el acceso mínimo al repositorio. La asignación propuesta es `dev` para desarrollo y `main` para producción, pendiente de aprobación.
+La configuración requiere cuenta y región confirmadas, responsable operativo, límite de gasto y autorización de acceso a GitHub. Inventariar aplicaciones, ramas, dominios y conexiones existentes antes de crear recursos. Conceder a Amplify el acceso mínimo al repositorio. El pipeline de desarrollo utiliza `dev`. La asignación de `main` a producción queda pendiente de aprobación.
 
 1. Usar la configuración de #2 para ejecutar `npm test` y `npm run build` con Node.js 24 y publicar únicamente `dist/`. El sitio se sirve como contenido estático, sin renderizado en servidor.
 2. Desactivar los builds automáticos y las vistas previas de PR durante la configuración inicial. Revisar los disparadores externos incluso cuando un commit incluya `[skip-cd]`.
-3. Restringir el acceso antes de compartir la URL. Con autorización para esa rama y SHA, desplegar el candidato exacto y retirar la aprobación puntual al terminar.
+3. Configurar la rama protegida con la [plantilla de Amplify](../infra/amplify-dev.yaml). La activación del despliegue continuo permite publicar cada push revisado a `dev` que supere las pruebas y compile. El [procedimiento operativo](launch-runbook.md) detalla el alta, la verificación y la pausa. Los despliegues puntuales conservan la aprobación para el SHA exacto.
 
 **Aceptación.** Una sesión anónima no puede acceder al sitio de desarrollo. En una sesión autorizada, la URL sirve por HTTPS el sitio y sus recursos. Registrar rama, SHA e identificador del build. Una directiva `noindex` por sí sola no cumple el requisito de acceso.
 
@@ -96,7 +96,7 @@ La activación requiere la propiedad GA4, acceso, ID de medición real y lista e
 
 ## F. Producción y despliegue continuo
 
-El control inicial de #2 rechaza vistas previas de PR y exige autorización para la rama y el SHA exactos. Mantenerlo activo hasta que se apruebe e implemente una política de despliegue continuo.
+En producción sigue vigente el control de #2 por rama y SHA exactos. La política de despliegue continuo de `dev` se limita al entorno de desarrollo. Ambos modos rechazan vistas previas de PR.
 
 1. Acordar ramas y cambios elegibles, audiencia, presupuesto, revisión obligatoria, responsables de aprobación, revocación y reversión. En un PR posterior, adaptar el control a esa política con CI obligatorio y promoción controlada. Excluir aprobaciones globales permanentes. Aplicar con autorización las protecciones de repositorio y entorno y comprobarlas en los servicios.
 2. Confirmar titularidad o compra autorizada de `mactecnologia.com.mx`, variante canónica, control DNS y certificado. Antes del primer cambio, preparar el plan de DNS y conservar el sitio anterior si existe. La compra del dominio, los cambios DNS y la publicación requieren autorización.

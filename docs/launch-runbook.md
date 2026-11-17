@@ -1,8 +1,8 @@
-# Preparación de lanzamiento: MAC Tecnología
+# Despliegue de MAC Tecnología en AWS Amplify
 
 ## Estado y límites
 
-Este cambio prepara la validación de código y un build estático para AWS Amplify. **No crea una aplicación de AWS, conecta GitHub, despliega, modifica DNS, cambia permisos ni activa contacto o analítica.** Abrir o aprobar este PR no autoriza esos pasos. `main` sigue siendo la base de código; una rama no es, por sí sola, un entorno publicado.
+GitHub Actions valida cada PR. Cuando el despliegue continuo está habilitado en Amplify, un push a `dev` inicia el build del commit y publica `dist/` en el entorno de desarrollo protegido por contraseña. Producción conserva la aprobación por rama y commit. El estado real se consulta en la aplicación Amplify de la cuenta y región elegidas.
 
 El sitio contiene únicamente Monolito suave: HTML/CSS/JavaScript sin dependencias npm, contenido ES/EN y contacto de demostración. Los mensajes permanecen en memoria; copiar al portapapeles es una acción voluntaria. No confundir esta vista previa con un envío real.
 
@@ -25,14 +25,14 @@ python3 -m http.server 8000 --directory dist
 
 ## 2. Decisiones antes de tocar AWS
 
-El alcance inicial autorizado es preparar **solo dev**, sin publicación por defecto. Producción permanece cerrada; cualquier despliegue de dev o producción requiere aprobación concreta antes de habilitar su gate.
+El entorno inicial es `dev`. El responsable de la aplicación puede habilitar o pausar su despliegue continuo con el parámetro `ContinuousDeploy`. Los despliegues puntuales y la publicación en producción siguen el procedimiento de aprobación por commit.
 
 Registrar fuera del repositorio público: cuenta AWS y región correctas, aplicación existente o nueva, responsable operativo y límite de gasto. No publicar identificadores de cuenta, credenciales o enlaces de sesión en este runbook.
 
 Acordar también:
 
 - Dominio y variante canónica (`www` o raíz), acceso a DNS y responsable del cambio.
-- Rama de validación y rama de producción. Propuesta: `dev` y `main`, respectivamente; **no se crean ni conectan automáticamente**.
+- Usar `dev` para validación. La rama propuesta para una futura publicación en producción es `main`.
 - Quién puede ver dev, cómo se restringe y durante cuánto tiempo se conserva.
 - Contacto real, destinatario, proveedor, tratamiento de errores y política de privacidad, antes de habilitar envíos.
 - Analítica y consentimiento: proveedor, finalidad, datos y consentimiento cuando corresponda. No activar scripts con identificadores ficticios.
@@ -58,15 +58,44 @@ Configuración propuesta para este proyecto:
 
 La especificación usa el formato documentado de [Amplify](https://docs.aws.amazon.com/amplify/latest/userguide/yml-specification-syntax.html). AWS documenta la selección de Node mediante `nvm use` y la compatibilidad de AL2023 con Node 24 en su [guía de versiones](https://docs.aws.amazon.com/amplify/latest/userguide/troubleshooting-general.html).
 
-### Freno de publicación por defecto
+### Alta del entorno de desarrollo
 
-`node scripts/check-deploy-approval.cjs` falla si no existen **las tres** variables en la rama que se haya aprobado:
+1. En GitHub, crear o actualizar `dev` a partir de un commit revisado que incluya este pipeline. Para que solo se desplieguen cambios revisados, exigir PR y el check **Test and build (Node 24)** en la protección de `dev`, incluidos los permisos de escritura directa.
+2. En la región elegida, identificar si ya existe una aplicación Amplify de plataforma `WEB` conectada a `craguilar/mac-web`. Comprobar la imagen de build con Node 24, los hooks y la configuración de ramas automáticas. La plantilla administra únicamente la rama de entorno `dev`.
+3. Preparar en AWS Secrets Manager un secreto JSON con las claves `username` y `password` para el acceso HTTP de desarrollo. CloudFormation necesita permiso para leer los secretos que utilice y para descifrarlos si usan una clave KMS administrada por el cliente. En los parámetros de la plantilla solo se pasan los nombres de los secretos.
+4. Para crear una aplicación nueva, instalar la GitHub App regional de AWS Amplify con acceso a este repositorio y guardar el token de conexión en otro secreto de texto simple. Si se usa una aplicación ya conectada, basta su ID. [Conexión de GitHub a Amplify mediante CloudFormation](https://docs.aws.amazon.com/amplify/latest/userguide/setting-up-GitHub-access.html).
+5. Desde la raíz del repositorio, aplicar la [plantilla de desarrollo](../infra/amplify-dev.yaml) con el perfil, región y referencias del entorno. Este ejemplo usa una aplicación existente. Para crearla con la misma plantilla, sustituir `ExistingAppId="$APP_ID"` por `GitHubTokenSecret="$TOKEN_SECRET"`. El primer despliegue de la pila deja el alojamiento protegido y los builds automáticos pausados.
+
+```sh
+aws cloudformation deploy --region "$AWS_REGION" --stack-name mac-web-dev \
+  --template-file infra/amplify-dev.yaml \
+  --parameter-overrides ExistingAppId="$APP_ID" DevAccessSecret="$DEV_ACCESS_SECRET" ContinuousDeploy=false
+```
+
+Si Amplify ya administra la rama `dev`, conservarla y configurar en ella la protección por contraseña, los previews desactivados y la variable de rama `MAC_AMPLIFY_CONTINUOUS_DEV`. Activar o pausar conjuntamente esa variable (`true` / `false`) y el auto-build. En este caso no crear una segunda rama con CloudFormation. En aplicaciones compartidas, revisar también las variables globales de aprobación y los dominios asociados a `dev`.
+
+### Activar, verificar y pausar el despliegue continuo
+
+Verificar en Amplify que la protección por contraseña de `dev` está habilitada. Si la rama ya sirve contenido, comprobar que la URL HTTPS devuelve HTTP 401 a una sesión anónima. Para habilitar los pushes en una rama administrada por CloudFormation, actualizar la pila existente. La pila conserva sus otros parámetros.
+
+```sh
+aws cloudformation deploy --region "$AWS_REGION" --stack-name mac-web-dev \
+  --template-file infra/amplify-dev.yaml --parameter-overrides ContinuousDeploy=true
+```
+
+El siguiente push aprobado a `dev` dispara el build nativo de Amplify. El control comprueba la rama, el SHA del checkout y la ausencia de cambios locales. Después ejecuta las pruebas y la compilación en Node 24. Si fallan, no se publica el candidato. En el historial de Amplify, cotejar el SHA y el ID del build con GitHub, comprobar el estado de despliegue y verificar que el sitio carga con credenciales y devuelve HTTP 401 sin ellas antes de compartir la URL. Repetir las comprobaciones de la sección 4 en la sesión autorizada.
+
+Para pausar futuros despliegues, repetir la actualización con `ContinuousDeploy=false`. Si un build ya está en curso, revisar su estado y cancelarlo en Amplify si corresponde. Para revertir un cambio de desarrollo, integrar un PR de reversión en `dev` y verificar el nuevo build. Los reintentos que Amplify identifica como `HEAD` utilizan la aprobación puntual descrita a continuación.
+
+### Despliegue puntual por rama y commit
+
+Fuera del flujo continuo de `dev`, `node scripts/check-deploy-approval.cjs` exige tres variables en la rama aprobada:
 
 - `MAC_AMPLIFY_DEPLOY_APPROVED=true`
 - `MAC_AMPLIFY_APPROVED_BRANCH` igual al nombre exacto de `AWS_BRANCH`
 - `MAC_AMPLIFY_APPROVED_COMMIT` igual al SHA completo de 40 caracteres del checkout Git real. Se contrasta con `AWS_COMMIT_ID`; cuando AWS informa `HEAD` en una recompilación, se sigue verificando el commit real, no una aprobación genérica.
 
-También rechaza builds con `AWS_PULL_REQUEST_ID`. No se declaran valores habilitantes en el repositorio. Cuando llegue la autorización, configurarlos como **overrides de esa rama**, no globalmente. Son controles operativos, no secretos ni una barrera IAM: alguien con capacidad de editar código/configuración puede cambiarlos. Habilitarlos no sustituye la aprobación del despliegue concreto.
+También rechaza builds con `AWS_PULL_REQUEST_ID`. Cuando llegue la autorización, configurarlos como **overrides de esa rama**, no globalmente. Son controles operativos, no secretos ni una barrera IAM: alguien con capacidad de editar código/configuración puede cambiarlos. Habilitarlos no sustituye la aprobación del despliegue concreto.
 
 El guard comprueba además que no existan cambios locales en archivos versionados ni archivos no versionados en los insumos del build, aunque estén ignorados por Git. Así, el SHA aprobado no puede acompañar silenciosamente a otros archivos antes del build. Si falla, revisar el checkout; no borrar archivos a ciegas ni quitar el control. Las pruebas ejercitan el comando real en un repositorio temporal y verifican byte por byte la salida completa del build.
 
@@ -101,4 +130,4 @@ Solo después de aprobar el commit, dominio, audiencia, gasto y configuración:
 5. Si la comprobación falla, detener la promoción. Con autorización, restaurar el build anterior desde el historial de Amplify o revertir el cambio en Git y desplegar de nuevo. No forzar ni reescribir `main`.
 6. Después de una reversión, volver a comprobar HTTPS, navegación, contacto y commit publicado. Si aún no existe una versión de producción anterior, no prometer una reversión instantánea: mantener el sitio anterior y preparar un plan de DNS antes del primer cambio.
 
-La conexión GitHub/AWS, reglas de rama, política de acceso, secretos, dominios y despliegues permanecen fuera de este PR. CI verifica código; no concede permiso para publicarlo.
+La URL, el SHA y el identificador del build permiten verificar una publicación en Amplify. El resultado de CI corresponde a la validación en GitHub.

@@ -44,7 +44,7 @@ La versión actual incorpora textos de servicios más concretos, contenido visib
 ## Alcance y pendientes
 
 - El formulario **no envía mensajes ni los guarda de forma persistente**. Valida los campos y muestra una vista previa en el navegador. Los datos y el último borrado reversible se mantienen solo en memoria mientras la página está abierta. Copiar escribe en el portapapeles únicamente cuando la persona pulsa ese botón; si no está disponible, se ofrece texto seleccionable.
-- No hay servidor de contacto, analítica, cookies, almacenamiento persistente, credenciales, integración de correo ni automatización de despliegue.
+- No hay servidor de contacto, analítica, cookies, almacenamiento persistente, credenciales ni integración de correo.
 - Los servicios y el destino de contacto requieren confirmación antes de producción.
 - Antes del lanzamiento: confirmar dominio y contacto, implementar y probar el envío real, definir los avisos de privacidad necesarios, configurar cabeceras de seguridad del alojamiento y completar revisión de accesibilidad y compatibilidad de navegadores.
 - Este repositorio no activa GitHub Pages ni publica un sitio de producción.
@@ -55,6 +55,6 @@ Las fuentes de terceros se distribuyen con Apache-2.0 y OFL-1.1, según `THIRD_P
 
 No se ha elegido una licencia de código abierto para el código, diseño o textos originales. La visibilidad pública del repositorio no sustituye esa decisión. Las licencias de las fuentes no se extienden al resto del proyecto.
 
-## Preparación de infraestructura
+## Despliegue de desarrollo
 
-El flujo de CI valida el código y genera el build, sin desplegar. `amplify.yml` deja preparada la salida estática para AWS Amplify, pero bloquea la publicación mientras no exista aprobación explícita para una rama concreta. Consulta el [runbook de lanzamiento](docs/launch-runbook.md) para revisiones, acceso a dev, decisiones pendientes y reversión. No hay integración AWS activada por estos archivos.
+Con el pipeline habilitado, AWS Amplify recibe los pushes a `dev`, comprueba el commit, ejecuta las pruebas y publica `dist/` en el sitio de desarrollo protegido por contraseña. GitHub Actions valida los PR. La [guía de despliegue](docs/launch-runbook.md) explica cómo configurar la conexión, habilitar o pausar el pipeline y verificar el build publicado.

@@ -2,21 +2,28 @@
 
 // Defense in depth only: owners can edit source/settings. This is not an IAM boundary.
 function assertDeployApproval(env, checkoutCommit) {
+  if (env.AWS_PULL_REQUEST_ID) {
+    throw new Error('Pull-request preview deployments are not approved by this build specification.');
+  }
+  if (!/^[a-f0-9]{40}$/.test(checkoutCommit || '')) {
+    throw new Error('The checked-out source must have a full commit SHA.');
+  }
+  // Only the dev push path can use the branch policy in place of a one-off approval.
+  if (env.MAC_AMPLIFY_CONTINUOUS_DEV === 'true' && env.AWS_BRANCH === 'dev' && env.AWS_COMMIT_ID === checkoutCommit) {
+    return;
+  }
   if (env.MAC_AMPLIFY_DEPLOY_APPROVED !== 'true') {
     throw new Error('Deployment is not approved. Follow docs/launch-runbook.md before enabling this branch.');
   }
   if (!env.AWS_BRANCH || env.MAC_AMPLIFY_APPROVED_BRANCH !== env.AWS_BRANCH) {
     throw new Error('Deployment approval must match the exact Amplify branch.');
   }
-  if (!/^[a-f0-9]{40}$/.test(checkoutCommit || '') || env.MAC_AMPLIFY_APPROVED_COMMIT !== checkoutCommit) {
+  if (env.MAC_AMPLIFY_APPROVED_COMMIT !== checkoutCommit) {
     throw new Error('Deployment approval must match the exact checked-out commit SHA.');
   }
-  // Amplify documents AWS_COMMIT_ID=HEAD for rebuilds; still verify actual Git HEAD.
+  // Amplify can report HEAD for a rebuild; the one-off approval still pins its checkout.
   if (env.AWS_COMMIT_ID !== 'HEAD' && env.AWS_COMMIT_ID !== checkoutCommit) {
     throw new Error('Amplify commit metadata does not match the checked-out source.');
-  }
-  if (env.AWS_PULL_REQUEST_ID) {
-    throw new Error('Pull-request preview deployments are not approved by this build specification.');
   }
 }
 

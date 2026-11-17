@@ -55,6 +55,17 @@ test('approval CLI rejects both unstaged and staged changes for the approved com
   assert.match(staged.stderr, /Tracked source changed/);
 });
 
+test('continuous dev accepts the pushed checkout and still rejects untracked source', t => {
+  const {root, run, sha} = fixture(t);
+  const push = {AWS_BRANCH: 'dev', AWS_COMMIT_ID: sha, MAC_AMPLIFY_CONTINUOUS_DEV: 'true'};
+  const clean = run(push);
+  assert.equal(clean.status, 0, clean.stderr);
+  fs.writeFileSync(path.join(root, 'public/untracked.txt'), 'Not part of the pushed commit');
+  const dirty = run(push);
+  assert.equal(dirty.status, 1);
+  assert.match(dirty.stderr, /Untracked build inputs/);
+});
+
 test('approval CLI permits ignored build output outside source inputs', t => {
   const {root, approval, run} = fixture(t);
   fs.mkdirSync(path.join(root, 'dist'));
