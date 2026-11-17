@@ -54,3 +54,7 @@ La versión actual incorpora textos de servicios más concretos, contenido visib
 Las fuentes de terceros se distribuyen con Apache-2.0 y OFL-1.1, según `THIRD_PARTY_NOTICES.md`. Las ilustraciones geométricas son recursos originales del prototipo, no fotografías de clientes ni reproducciones de textiles tradicionales específicos.
 
 No se ha elegido una licencia de código abierto para el código, diseño o textos originales. La visibilidad pública del repositorio no sustituye esa decisión. Las licencias de las fuentes no se extienden al resto del proyecto.
+
+## Preparación de infraestructura
+
+El flujo de CI valida el código y genera el build, sin desplegar. `amplify.yml` deja preparada la salida estática para AWS Amplify, pero bloquea la publicación mientras no exista aprobación explícita para una rama concreta. Consulta el [runbook de lanzamiento](docs/launch-runbook.md) para revisiones, acceso a dev, decisiones pendientes y reversión. No hay integración AWS activada por estos archivos.
