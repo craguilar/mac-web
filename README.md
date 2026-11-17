@@ -2,6 +2,10 @@
 
 Prototipo bilingüe de la página de MAC Tecnología. Esta exportación contiene únicamente la dirección visual seleccionada: Monolito suave.
 
+## Especificación de lanzamiento
+
+La [especificación técnica](docs/PROJECT_PLAN.md) define los requisitos del sitio bilingüe, el contrato de contacto, el consentimiento para GA4 y los criterios de aceptación para desarrollo y producción en AWS Amplify Hosting.
+
 ## Ejecutar localmente
 
 El sitio es HTML, CSS y JavaScript estático, sin dependencias de ejecución ni instalación de paquetes.
