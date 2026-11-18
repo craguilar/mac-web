@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Single production environment for the MAC Tecnologia static site on Amplify Hosting.
+
+Parameters:
+  ExistingAppId:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|^d[a-z0-9]{1,19}$'
+    Description: ID of an Amplify app already connected to craguilar/mac-web. Leave empty to create one.
+  GitHubTokenSecret:
+    Type: String
+    Default: ''
+    Description: For a new app only, the name of a Secrets Manager secret containing the GitHub token as plain text.
+
+
+Rules:
+  RequireTokenForNewApp:
+    RuleCondition: !Equals [!Ref ExistingAppId, '']
+    Assertions:
+      - Assert: !Not [!Equals [!Ref GitHubTokenSecret, '']]
+        AssertDescription: A new app requires a GitHub token secret.
+
+Conditions:
+  CreateApp: !Equals [!Ref ExistingAppId, '']
+
+Resources:
+  HostingApp:
+    Type: AWS::Amplify::App
+    Condition: CreateApp
+    Properties:
+      Name: mac-web
+      EnableBranchAutoDeletion: false
+      AutoBranchCreationConfig:
+        EnableAutoBranchCreation: false
+        EnableAutoBuild: false
+      Platform: WEB
+      Repository: https://github.com/craguilar/mac-web
+      AccessToken: !Sub '{{resolve:secretsmanager:${GitHubTokenSecret}:SecretString}}'
+
+  ProductionBranch:
+    Type: AWS::Amplify::Branch
+    Properties:
+      AppId: !If [CreateApp, !GetAtt HostingApp.AppId, !Ref ExistingAppId]
+      BranchName: main
+      Stage: PRODUCTION
+      EnableAutoBuild: false
+      EnablePullRequestPreview: false
+
+Outputs:
+  AppId:
+    Value: !If [CreateApp, !GetAtt HostingApp.AppId, !Ref ExistingAppId]

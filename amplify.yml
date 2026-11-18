@@ -1,5 +1,4 @@
-# Preparation only. The approval guard fails closed until a specific branch is approved.
-# This file does not create an Amplify app or authorize any deployment.
+# Amplify runs this pipeline on the production branch. See infra/amplify-prod.yaml.
 version: 1
 frontend:
   phases:

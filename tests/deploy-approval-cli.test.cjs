@@ -20,14 +20,14 @@ function fixture(t) {
   git(['add', '.']);
   git(['-c', 'user.name=Test fixture', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgsign=false', 'commit', '-qm', 'Test fixture only']);
   const sha = git(['rev-parse', 'HEAD']);
-  const approval = {AWS_BRANCH: 'dev', AWS_COMMIT_ID: sha, MAC_AMPLIFY_DEPLOY_APPROVED: 'true', MAC_AMPLIFY_APPROVED_BRANCH: 'dev', MAC_AMPLIFY_APPROVED_COMMIT: sha};
+  const approval = {AWS_BRANCH: 'main', AWS_COMMIT_ID: sha, MAC_AMPLIFY_DEPLOY_APPROVED: 'true', MAC_AMPLIFY_APPROVED_BRANCH: 'main', MAC_AMPLIFY_APPROVED_COMMIT: sha};
   const run = overrides => cp.spawnSync(process.execPath, ['scripts/check-deploy-approval.cjs'], {cwd: root, env: {...env, ...overrides}, encoding: 'utf8'});
   return {root, sha, approval, run, git};
 }
 
 test('approval CLI fails closed and supports exact-commit and HEAD rebuild metadata', t => {
   const {approval, run} = fixture(t);
-  const denied = run({});
+  const denied = run({AWS_BRANCH: 'main'});
   assert.equal(denied.status, 1);
   assert.match(denied.stderr, /Deployment is not approved/);
   for (const env of [approval, {...approval, AWS_COMMIT_ID: 'HEAD'}]) {
@@ -36,7 +36,7 @@ test('approval CLI fails closed and supports exact-commit and HEAD rebuild metad
     assert.match(accepted.stdout, /gate passed/);
   }
   for (const env of [
-    {...approval, AWS_BRANCH: 'main'},
+    {...approval, AWS_BRANCH: 'dev', MAC_AMPLIFY_APPROVED_BRANCH: 'dev'},
     {...approval, MAC_AMPLIFY_APPROVED_COMMIT: '0'.repeat(40)},
     {...approval, AWS_COMMIT_ID: '0'.repeat(40)},
     {...approval, AWS_PULL_REQUEST_ID: '42'}

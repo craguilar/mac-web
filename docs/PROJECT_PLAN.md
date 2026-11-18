@@ -8,7 +8,7 @@ El sitio corporativo de MAC Tecnología se dirige a empresas del sur de México 
 | --- | --- |
 | Diseño y contenido | Conservar Monolito suave, sus colores y fluidez en móvil, la identidad chiapaneca discreta y el tono cercano y práctico. Mantener «Buenas ideas. Tecnología que las hace realidad.», el texto aprobado de Nosotros y la oferta de servicios vigente. Toda mención de clientes, testimonios, resultados o certificaciones requiere evidencia aprobada. |
 | Arquitectura | Servir HTML, CSS y JavaScript estáticos desde el repositorio público `craguilar/mac-web`. Mantener la navegación por anclas y `?lang=es` / `?lang=en`. El alcance excluye Flowly y una migración a React o Next.js. El envío del formulario requiere un servicio de contacto independiente del alojamiento estático. |
-| Alojamiento | **AWS Amplify Hosting** es la plataforma elegida. Se evaluaron Cloudflare y el alojamiento directo en S3. La primera entrega en Amplify es un entorno de desarrollo con acceso restringido. |
+| Alojamiento | **AWS Amplify Hosting** es la plataforma elegida. Se evaluaron Cloudflare y el alojamiento directo en S3. El único entorno alojado es producción, desde `main`. |
 | Dominio | El dominio elegido es `mactecnologia.com.mx`. La puesta en producción depende de confirmar su disponibilidad o titularidad, el control del DNS y la variante canónica (raíz o `www`). |
 
 ## Base de implementación
@@ -39,15 +39,11 @@ Para la inspección en navegador se puede servir `dist/` con `python3 -m http.se
 
 **Aceptación.** Registrar los SHA de base y candidatos, las pruebas, el build y las funciones que siguen desactivadas. Contrastar la oferta del README con los textos de servicios aprobados. Actualizar las indicaciones de prototipo cuando se haya verificado la función correspondiente.
 
-## B. Desarrollo protegido en Amplify
+## B. Validación antes de publicar
 
-La configuración requiere cuenta y región confirmadas, responsable operativo, límite de gasto y autorización de acceso a GitHub. Inventariar aplicaciones, ramas, dominios y conexiones existentes antes de crear recursos. Conceder a Amplify el acceso mínimo al repositorio. La asignación propuesta es `dev` para desarrollo y `main` para producción, pendiente de aprobación.
+Validar los cambios en GitHub Actions y servir `dist/` localmente para la revisión en navegador. La [plantilla de Amplify](../infra/amplify-prod.yaml) define una única rama alojada, `main`, con stage `PRODUCTION`. Los builds automáticos y las vistas previas de PR permanecen desactivados.
 
-1. Usar la configuración de #2 para ejecutar `npm test` y `npm run build` con Node.js 24 y publicar únicamente `dist/`. El sitio se sirve como contenido estático, sin renderizado en servidor.
-2. Desactivar los builds automáticos y las vistas previas de PR durante la configuración inicial. Revisar los disparadores externos incluso cuando un commit incluya `[skip-cd]`.
-3. Restringir el acceso antes de compartir la URL. Con autorización para esa rama y SHA, desplegar el candidato exacto y retirar la aprobación puntual al terminar.
-
-**Aceptación.** Una sesión anónima no puede acceder al sitio de desarrollo. En una sesión autorizada, la URL sirve por HTTPS el sitio y sus recursos. Registrar rama, SHA e identificador del build. Una directiva `noindex` por sí sola no cumple el requisito de acceso.
+**Aceptación.** Cada PR supera las pruebas y el build en Node.js 24. El [procedimiento operativo](launch-runbook.md) cubre el alta y la verificación del entorno de producción.
 
 ## C. Contacto y privacidad
 
@@ -94,11 +90,11 @@ La activación requiere la propiedad GA4, acceso, ID de medición real y lista e
 
 **Aceptación.** Adjuntar resultados de navegador y móvil al SHA candidato, con las incidencias críticas resueltas y los límites de las pruebas documentados.
 
-## F. Producción y despliegue continuo
+## F. Publicación en producción
 
-El control inicial de #2 rechaza vistas previas de PR y exige autorización para la rama y el SHA exactos. Mantenerlo activo hasta que se apruebe e implemente una política de despliegue continuo.
+El único destino de publicación es `main`. Cada despliegue requiere aprobación por SHA exacto y el control rechaza vistas previas de PR.
 
-1. Acordar ramas y cambios elegibles, audiencia, presupuesto, revisión obligatoria, responsables de aprobación, revocación y reversión. En un PR posterior, adaptar el control a esa política con CI obligatorio y promoción controlada. Excluir aprobaciones globales permanentes. Aplicar con autorización las protecciones de repositorio y entorno y comprobarlas en los servicios.
+1. Confirmar cuenta, región, presupuesto y responsables de aprobación y reversión. Exigir CI en `main` antes de aprobar un candidato a publicación.
 2. Confirmar titularidad o compra autorizada de `mactecnologia.com.mx`, variante canónica, control DNS y certificado. Antes del primer cambio, preparar el plan de DNS y conservar el sitio anterior si existe. La compra del dominio, los cambios DNS y la publicación requieren autorización.
 3. Aprobar el SHA candidato. Comprobar build, HTTPS, recursos, contacto y consentimiento antes y después del cambio de dominio. Registrar el SHA y el build publicados. Se proponen etiquetas de versión `vX.Y.Z` para identificar las entregas.
 4. Probar la reversión a un build conocido o mediante un PR de reversión, preservando el historial de `main`. Volver a verificar la versión servida, HTTPS, navegación y contacto después de restaurar.
