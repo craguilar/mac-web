@@ -71,6 +71,33 @@ aws cloudformation deploy --region "$AWS_REGION" --stack-name mac-web-prod \
 
 Si la aplicación ya aloja `main`, conservar esa rama y comprobar en Amplify que su stage sea `PRODUCTION`, con auto-build y previews desactivados. La plantilla crea una rama y no debe aplicarse encima de una rama existente administrada fuera de la pila.
 
+### Configurar el despliegue desde GitHub Actions
+
+El workflow **Deploy to AWS Amplify** aparece en Actions cuando `.github/workflows/deploy.yml` forma parte de `main`. Se ejecuta con **Run workflow** y la rama `main`. Cada ejecución usa el commit seleccionado por GitHub, vuelve a probar y compilar el sitio, solicita el build a Amplify y espera su resultado.
+
+1. Completar el alta de la aplicación Amplify y de la rama `main` descrita arriba. Conservar el auto-build y las vistas previas desactivados.
+2. Crear o reutilizar el proveedor OIDC de GitHub en IAM, con URL `https://token.actions.githubusercontent.com` y audiencia `sts.amazonaws.com`. Aplicar la [plantilla del rol de despliegue](../infra/github-deploy-role.yaml) en la cuenta y región de la aplicación, pasando su ID como `AmplifyAppId`. La operación requiere `CAPABILITY_IAM`. La salida `RoleArn` identifica el rol para GitHub. [Autenticación de GitHub Actions en AWS](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws).
+3. En **Settings → Environments**, crear `production` y limitar sus ramas de despliegue a `main`. Configurar los revisores requeridos si la política de publicación los necesita. El rol confía en el repositorio `craguilar/mac-web` y en ese entorno.
+4. En las variables del entorno `production`, definir los siguientes valores.
+
+| Variable | Valor |
+| --- | --- |
+| `AWS_REGION` | Región de la aplicación Amplify |
+| `AMPLIFY_APP_ID` | ID de la aplicación conectada al repositorio |
+| `AWS_ROLE_ARN` | Salida `RoleArn` de la plantilla del rol |
+
+El workflow obtiene credenciales temporales mediante OIDC. El rol permite consultar la aplicación y administrar la aprobación y los jobs de su rama `main`. La conexión GitHub de Amplify utiliza la autorización configurada durante el alta.
+
+### Ejecutar y comprobar un despliegue en Actions
+
+En **Actions → Deploy to AWS Amplify → Run workflow**, seleccionar `main` y ejecutar. GitHub muestra el commit elegido, las pruebas, el inicio del job remoto y sus cambios de estado. Un error de Amplify, un commit diferente o un tiempo de espera agotado hace fallar la ejecución. Como `RELEASE` puede tomar el último commit de la rama, un cambio de `main` durante la ejecución exige iniciar un nuevo workflow. El control en Amplify verifica el SHA real antes de compilar. [Comportamiento de StartJob](https://docs.aws.amazon.com/amplify/latest/APIReference/API_StartJob.html).
+
+La aprobación temporal se registra en la rama con el identificador de la ejecución. El último paso restaura las variables de aprobación anteriores, conserva las demás variables y detiene un job propio que siga pendiente. Las ejecuciones de este workflow se serializan. Durante el despliegue, administrar la aprobación desde esta ejecución para evitar cambios concurrentes desde la consola.
+
+Si el runner desaparece o AWS impide completar la limpieza, revisar el historial de Amplify y las variables de aprobación de la rama antes de reintentar. Retirar una aprobación residual únicamente después de identificar la ejecución y el job correspondientes. Una respuesta perdida al iniciar el job puede requerir comprobar en Amplify si llegó a crearse. El workflow evita reintentar automáticamente esa operación.
+
+Tras un resultado satisfactorio, verificar la URL publicada y las comprobaciones de la sección 5. Para restaurar una versión anterior, integrar un PR de reversión en `main` y ejecutar el workflow para ese nuevo commit.
+
 ### Aprobación de cada despliegue
 
 `node scripts/check-deploy-approval.cjs` exige tres variables en `main`:
