@@ -14,12 +14,22 @@ const approvalKeys = [
 ];
 const terminalStatuses = new Set(['SUCCEED', 'FAILED', 'CANCELLED']);
 
-function configuration(env, checkoutCommit) {
-  if (env.GITHUB_EVENT_NAME !== 'workflow_dispatch' || env.GITHUB_REF !== 'refs/heads/main' ||
+function configuration(env, checkoutCommit, event = {}) {
+  if (!['workflow_dispatch', 'workflow_run'].includes(env.GITHUB_EVENT_NAME) || env.GITHUB_REF !== 'refs/heads/main' ||
       env.GITHUB_REPOSITORY !== 'craguilar/mac-web') {
-    throw new Error('Run this workflow manually from main in craguilar/mac-web.');
+    throw new Error('Deployment requires main in craguilar/mac-web, manually or after CI.');
   }
-  if (!/^[a-f0-9]{40}$/.test(env.GITHUB_SHA || '') || checkoutCommit !== env.GITHUB_SHA) {
+  let selectedCommit = env.GITHUB_SHA;
+  if (env.GITHUB_EVENT_NAME === 'workflow_run') {
+    const run = event.workflow_run;
+    if (event.action !== 'completed' || run?.name !== 'CI' || run.event !== 'push' ||
+        run.conclusion !== 'success' || run.head_branch !== 'main' ||
+        run.head_repository?.full_name !== env.GITHUB_REPOSITORY) {
+      throw new Error('Automatic deployment requires successful push CI on main in this repository.');
+    }
+    selectedCommit = run.head_sha;
+  }
+  if (!/^[a-f0-9]{40}$/.test(selectedCommit || '') || checkoutCommit !== selectedCommit) {
     throw new Error('The checkout must match the commit selected for this workflow.');
   }
   for (const name of ['AWS_REGION', 'AWS_ROLE_ARN', 'AMPLIFY_APP_ID']) {
@@ -147,7 +157,10 @@ async function main() {
     return;
   }
   const checkoutCommit = execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim();
-  const config = configuration(process.env, checkoutCommit);
+  const event = process.env.GITHUB_EVENT_NAME === 'workflow_run'
+    ? JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'))
+    : {};
+  const config = configuration(process.env, checkoutCommit, event);
   if (command === 'check') return;
   if (command !== 'deploy') throw new Error('Expected check, deploy or cleanup.');
   const state = await deploy(config, aws, value => fs.writeFileSync(statePath, JSON.stringify(value), {mode: 0o600}));
