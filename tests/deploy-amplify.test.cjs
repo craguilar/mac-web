@@ -70,6 +70,35 @@ test('successful deployment pins the commit and cleans its approval while preser
   assert.equal(f.branch.environmentVariables.MAC_AMPLIFY_DEPLOY_APPROVED, 'false');
 });
 
+test('automatic deployment selects the successful CI commit even when the default branch has advanced', () => {
+  const ciEvent = {
+    action: 'completed',
+    workflow_run: {
+      name: 'CI', event: 'push', conclusion: 'success', head_branch: 'main', head_sha: commit,
+      head_repository: {full_name: 'craguilar/mac-web'}
+    }
+  };
+  const autoEnv = {...env, GITHUB_EVENT_NAME: 'workflow_run', GITHUB_SHA: 'b'.repeat(40)};
+  assert.deepEqual(configuration(autoEnv, commit, ciEvent), config);
+  assert.throws(() => configuration(autoEnv, autoEnv.GITHUB_SHA, ciEvent), /checkout must match/);
+});
+
+test('automatic deployment rejects failed, cancelled, PR, foreign and incomplete CI events', () => {
+  const run = {
+    name: 'CI', event: 'push', conclusion: 'success', head_branch: 'main', head_sha: commit,
+    head_repository: {full_name: 'craguilar/mac-web'}
+  };
+  const autoEnv = {...env, GITHUB_EVENT_NAME: 'workflow_run'};
+  for (const change of [
+    {name: 'Other workflow'}, {event: 'pull_request'}, {event: 'workflow_dispatch'},
+    {conclusion: 'failure'}, {conclusion: 'cancelled'}, {conclusion: null},
+    {head_branch: 'feature'}, {head_repository: {full_name: 'other/fork'}},
+    {head_repository: undefined}, {head_sha: undefined}, {head_sha: 'HEAD'}
+  ]) assert.throws(() => configuration(autoEnv, commit, {action: 'completed', workflow_run: {...run, ...change}}));
+  assert.throws(() => configuration(autoEnv, commit));
+  assert.throws(() => configuration(autoEnv, commit, {action: 'requested', workflow_run: run}));
+});
+
 test('invalid app, branch settings and active jobs prevent an approval or deployment', async () => {
   const variants = [
     f => { f.app.repository = 'https://github.com/other/repo'; },

@@ -2,7 +2,7 @@
 
 ## Estado y límites
 
-GitHub Actions valida cada PR. AWS Amplify aloja un único entorno de producción desde `main`. Cada despliegue requiere aprobación del commit exacto.
+GitHub Actions valida los PR y los pushes a `main`. Al completar correctamente el CI de un push a `main`, inicia el despliegue en AWS Amplify del mismo commit. Cada ejecución configura una aprobación temporal del SHA exacto. La publicación utiliza un único entorno de producción.
 
 El sitio contiene únicamente Monolito suave: HTML/CSS/JavaScript sin dependencias npm, contenido ES/EN y contacto de demostración. Los mensajes permanecen en memoria; copiar al portapapeles es una acción voluntaria. No confundir esta vista previa con un envío real.
 
@@ -73,11 +73,11 @@ Si la aplicación ya aloja `main`, conservar esa rama y comprobar en Amplify que
 
 ### Configurar el despliegue desde GitHub Actions
 
-El workflow **Deploy to AWS Amplify** aparece en Actions cuando `.github/workflows/deploy.yml` forma parte de `main`. Se ejecuta con **Run workflow** y la rama `main`. Cada ejecución usa el commit seleccionado por GitHub, vuelve a probar y compilar el sitio, solicita el build a Amplify y espera su resultado.
+El workflow **Deploy to AWS Amplify** aparece en Actions cuando `.github/workflows/deploy.yml` forma parte de `main`. Se inicia automáticamente después de un CI satisfactorio de un push a `main`, y también permite ejecución manual con **Run workflow**. Cada ejecución prueba y compila el commit seleccionado, solicita el build a Amplify y espera su resultado.
 
 1. Completar el alta de la aplicación Amplify y de la rama `main` descrita arriba. Conservar el auto-build y las vistas previas desactivados.
 2. Crear o reutilizar el proveedor OIDC de GitHub en IAM, con URL `https://token.actions.githubusercontent.com` y audiencia `sts.amazonaws.com`. Aplicar la [plantilla del rol de despliegue](../infra/github-deploy-role.yaml) en la cuenta y región de la aplicación, pasando su ID como `AmplifyAppId`. La operación requiere `CAPABILITY_IAM`. La salida `RoleArn` identifica el rol para GitHub. [Autenticación de GitHub Actions en AWS](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws).
-3. En **Settings → Environments**, crear `production` y limitar sus ramas de despliegue a `main`. Configurar los revisores requeridos si la política de publicación los necesita. El rol confía en el repositorio `craguilar/mac-web` y en ese entorno.
+3. En **Settings → Environments**, crear `production` y limitar sus ramas de despliegue a `main`. Para publicar automáticamente después de CI, configurar el entorno sin aprobación manual obligatoria. Si la política exige revisores, el workflow esperará esa aprobación antes de desplegar. El rol confía en el repositorio `craguilar/mac-web` y en ese entorno.
 4. En las variables del entorno `production`, definir los siguientes valores.
 
 | Variable | Valor |
@@ -90,13 +90,15 @@ El workflow obtiene credenciales temporales mediante OIDC. El rol permite consul
 
 ### Ejecutar y comprobar un despliegue en Actions
 
-En **Actions → Deploy to AWS Amplify → Run workflow**, seleccionar `main` y ejecutar. GitHub muestra el commit elegido, las pruebas, el inicio del job remoto y sus cambios de estado. Un error de Amplify, un commit diferente o un tiempo de espera agotado hace fallar la ejecución. Como `RELEASE` puede tomar el último commit de la rama, un cambio de `main` durante la ejecución exige iniciar un nuevo workflow. El control en Amplify verifica el SHA real antes de compilar. [Comportamiento de StartJob](https://docs.aws.amazon.com/amplify/latest/APIReference/API_StartJob.html).
+La ruta automática empieza con un push a `main`. Cuando **CI** termina correctamente, **Deploy to AWS Amplify** usa el SHA de esa ejecución de CI. La condición comprueba el resultado, el evento de push, la rama y el repositorio de origen. [Activación mediante workflow_run](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_run).
+
+Para publicar manualmente, abrir **Actions → Deploy to AWS Amplify → Run workflow**, seleccionar `main` y ejecutar. En ambas rutas, GitHub muestra el commit elegido, las pruebas, el inicio del job remoto y sus cambios de estado. Un error de Amplify, un commit diferente o un tiempo de espera agotado hace fallar la ejecución. Como `RELEASE` puede tomar el último commit de la rama, si `main` avanza durante el despliegue, esperar al CI y al despliegue del commit nuevo o ejecutarlo manualmente. El control en Amplify verifica el SHA real antes de compilar. [Comportamiento de StartJob](https://docs.aws.amazon.com/amplify/latest/APIReference/API_StartJob.html).
 
 La aprobación temporal se registra en la rama con el identificador de la ejecución. El último paso restaura las variables de aprobación anteriores, conserva las demás variables y detiene un job propio que siga pendiente. Las ejecuciones de este workflow se serializan. Durante el despliegue, administrar la aprobación desde esta ejecución para evitar cambios concurrentes desde la consola.
 
 Si el runner desaparece o AWS impide completar la limpieza, revisar el historial de Amplify y las variables de aprobación de la rama antes de reintentar. Retirar una aprobación residual únicamente después de identificar la ejecución y el job correspondientes. Una respuesta perdida al iniciar el job puede requerir comprobar en Amplify si llegó a crearse. El workflow evita reintentar automáticamente esa operación.
 
-Tras un resultado satisfactorio, verificar la URL publicada y las comprobaciones de la sección 5. Para restaurar una versión anterior, integrar un PR de reversión en `main` y ejecutar el workflow para ese nuevo commit.
+Tras un resultado satisfactorio, verificar la URL publicada y las comprobaciones de la sección 5. Para restaurar una versión anterior, integrar un PR de reversión en `main` y seguir el CI y el despliegue automático de ese nuevo commit.
 
 ### Aprobación de cada despliegue
 
@@ -133,8 +135,8 @@ En el commit candidato exacto:
 Solo después de aprobar el commit, dominio, audiencia, gasto y configuración:
 
 1. Registrar el último commit/build conocido como correcto y el procedimiento de restauración disponible en la aplicación real.
-2. Aprobar el SHA exacto que se va a publicar desde `main`.
-3. Definir las variables de aprobación en `main`, iniciar el build manual en Amplify, cotejar su SHA con el candidato y retirar las variables al terminar.
+2. Integrar el candidato revisado en `main` y comprobar el resultado de CI. Completar la revisión del entorno `production` si está configurada.
+3. Seguir el workflow automático de publicación o iniciarlo manualmente desde Actions. El workflow define la aprobación del commit, inicia el job de Amplify, coteja su SHA y limpia la aprobación al terminar.
 4. Comprobar URL, HTTPS, ES/EN, recursos y contacto en producción. Cambiar DNS solo cuando se haya aprobado ese cambio y se conozca el estado del dominio.
 5. Si la comprobación falla, detener la promoción. Con autorización, restaurar el build anterior desde el historial de Amplify o revertir el cambio en Git y desplegar de nuevo. No forzar ni reescribir `main`.
 6. Después de una reversión, volver a comprobar HTTPS, navegación, contacto y commit publicado. Si aún no existe una versión de producción anterior, no prometer una reversión instantánea: mantener el sitio anterior y preparar un plan de DNS antes del primer cambio.

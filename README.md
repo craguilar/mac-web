@@ -47,7 +47,7 @@ La versión actual incorpora textos de servicios más concretos, contenido visib
 - No hay servidor de contacto, analítica, cookies, almacenamiento persistente, credenciales ni integración de correo.
 - Los servicios y el destino de contacto requieren confirmación antes de producción.
 - Antes del lanzamiento: confirmar dominio y contacto, implementar y probar el envío real, definir los avisos de privacidad necesarios, configurar cabeceras de seguridad del alojamiento y completar revisión de accesibilidad y compatibilidad de navegadores.
-- La publicación en AWS Amplify requiere aprobación del commit.
+- La publicación en AWS Amplify utiliza una aprobación temporal ligada al commit seleccionado.
 
 ## Licencias
 
@@ -57,4 +57,4 @@ No se ha elegido una licencia de código abierto para el código, diseño o text
 
 ## Despliegue en producción
 
-AWS Amplify publica la rama `main`. Después de configurar el entorno `production` en GitHub, abrir **Actions → Deploy to AWS Amplify → Run workflow** y seleccionar `main`. La ejecución prueba el commit, inicia el build de Amplify y muestra el resultado del despliegue. La [guía de despliegue](docs/launch-runbook.md#configurar-el-despliegue-desde-github-actions) describe el rol AWS, las tres variables necesarias y la reversión.
+Después de configurar el entorno `production` en GitHub, cada push a `main` cuyo CI termine correctamente inicia **Deploy to AWS Amplify** para publicar ese mismo commit. También se puede abrir **Actions → Deploy to AWS Amplify → Run workflow** y seleccionar `main` para ejecutar manualmente. La [guía de despliegue](docs/launch-runbook.md#configurar-el-despliegue-desde-github-actions) describe el rol AWS, las tres variables necesarias, las aprobaciones del entorno y la reversión.
