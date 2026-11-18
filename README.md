@@ -47,7 +47,7 @@ La versión actual incorpora textos de servicios más concretos, contenido visib
 - No hay servidor de contacto, analítica, cookies, almacenamiento persistente, credenciales ni integración de correo.
 - Los servicios y el destino de contacto requieren confirmación antes de producción.
 - Antes del lanzamiento: confirmar dominio y contacto, implementar y probar el envío real, definir los avisos de privacidad necesarios, configurar cabeceras de seguridad del alojamiento y completar revisión de accesibilidad y compatibilidad de navegadores.
-- La publicación en AWS Amplify utiliza una aprobación temporal ligada al commit seleccionado.
+- AWS Amplify publica automáticamente los cambios de `main` después de ejecutar las pruebas y el build.
 
 ## Licencias
 
@@ -57,4 +57,6 @@ No se ha elegido una licencia de código abierto para el código, diseño o text
 
 ## Despliegue en producción
 
-Después de configurar el entorno `production` en GitHub, cada push a `main` cuyo CI termine correctamente inicia **Deploy to AWS Amplify** para publicar ese mismo commit. También se puede abrir **Actions → Deploy to AWS Amplify → Run workflow** y seleccionar `main` para ejecutar manualmente. La [guía de despliegue](docs/launch-runbook.md#configurar-el-despliegue-desde-github-actions) describe el rol AWS, las tres variables necesarias, las aprobaciones del entorno y la reversión.
+Conectar `craguilar/mac-web`, rama `main`, directamente en AWS Amplify Hosting y habilitar los builds automáticos. Amplify utiliza `amplify.yml`: selecciona Node 24, verifica la rama, ejecuta `npm test` y `npm run build`, y publica `dist/` solo si ambos comandos terminan correctamente. El estado del despliegue se consulta en Amplify.
+
+GitHub Actions conserva el CI de validación y se ejecuta de forma independiente; Amplify no espera su resultado. Para exigir CI antes de publicar, requerir **Test and build (Node 24)** antes de fusionar PR en `main` mediante la protección de la rama. No se necesitan variables `AMPLIFY_APP_ID`, `AWS_ROLE_ARN` o `AWS_REGION` en GitHub, ni variables de aprobación por commit en Amplify. La [guía de despliegue](docs/launch-runbook.md) describe la configuración y la reversión.
