@@ -29,9 +29,10 @@ Resources:
     Condition: CreateApp
     Properties:
       Name: mac-web
-      EnableBranchAutoBuild: false
       EnableBranchAutoDeletion: false
-      EnableAutoBranchCreation: false
+      AutoBranchCreationConfig:
+        EnableAutoBranchCreation: false
+        EnableAutoBuild: false
       Platform: WEB
       Repository: https://github.com/craguilar/mac-web
       AccessToken: !Sub '{{resolve:secretsmanager:${GitHubTokenSecret}:SecretString}}'
