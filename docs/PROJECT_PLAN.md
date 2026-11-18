@@ -21,11 +21,13 @@ Estado de referencia del 16 de noviembre de 2026. Los resultados de pruebas corr
 | [PR #1](https://github.com/craguilar/mac-web/pull/1) · borrador en `0dab065` | Incluye el validador de contacto, la política de eventos y el controlador de consentimiento. Los módulos siguen desconectados de la página. El [contrato propuesto](https://github.com/craguilar/mac-web/blob/0dab065535b1e6a21364263cd11f26021d1f835a/docs/analytics-contact-readiness.md) describe las pruebas con un adaptador simulado. |
 | [PR #2](https://github.com/craguilar/mac-web/pull/2) · borrador en `df16ffc` | Incluye CI de validación, `amplify.yml` y el control de despliegue por rama y commit. El [procedimiento de Amplify](https://github.com/craguilar/mac-web/blob/df16ffc84c27e644937ed1d073a539e76668a056/docs/launch-runbook.md) describe la configuración pendiente. |
 
-Los dos PR seguían abiertos y sin fusionar en esa revisión. Cada uno reportó 17 pruebas y una compilación local correctas. La validación local conjunta completó 25 pruebas y compiló el sitio correctamente. El [CI de #2](https://github.com/craguilar/mac-web/actions/runs/43752475117) pasó en `df16ffc`. La aplicación AWS, sus permisos, el DNS y el despliegue de producción siguen pendientes de verificación.
+Los dos PR seguían abiertos y sin fusionar en esa revisión. Cada uno reportó 17 pruebas y una compilación local correctas. La validación local conjunta completó 25 pruebas y compiló el sitio correctamente. El [CI de #2](https://github.com/craguilar/mac-web/actions/runs/43752475117) pasó en `df16ffc`.
+
+Actualización del 18 de noviembre de 2026: esos PR ya están integrados. La aplicación Amplify está conectada a GitHub, con builds automáticos de `main` y vistas previas desactivadas. La decisión vigente es desplegar mediante esa conexión directa y ejecutar pruebas/build dentro de Amplify. Se retiran el workflow de despliegue de GitHub y la aprobación temporal por SHA. El DNS y la publicación correcta siguen pendientes de verificación.
 
 ## A. Integración y verificación local
 
-Revisar #1 y #2 por separado contra el `main` vigente. Reutilizar sus módulos, resolver incompatibilidades en ramas de trabajo y probar ambos cambios juntos en una rama temporal. Esta etapa puede completarse sin credenciales AWS ni despliegues. Conservar el trabajo local y el historial de las ramas durante la integración.
+Usar el `main` vigente como base y reutilizar los módulos integrados de #1 y #2. Resolver incompatibilidades y probar los cambios juntos antes de fusionar. Esta etapa puede completarse sin credenciales AWS ni despliegues. Conservar el trabajo local y el historial de las ramas durante la integración.
 
 Desde la raíz del repositorio, con Node.js 24 para reproducir el entorno de CI, ejecutar las comprobaciones en cada candidato y en la combinación. La versión de referencia carece de dependencias npm y de archivo de bloqueo.
 
@@ -41,7 +43,7 @@ Para la inspección en navegador se puede servir `dist/` con `python3 -m http.se
 
 ## B. Validación antes de publicar
 
-Validar los cambios en GitHub Actions y servir `dist/` localmente para la revisión en navegador. La [plantilla de Amplify](../infra/amplify-prod.yaml) define una única rama alojada, `main`, con stage `PRODUCTION`. Los builds automáticos y las vistas previas de PR permanecen desactivados.
+Validar los cambios en GitHub Actions y servir `dist/` localmente para la revisión en navegador. Amplify aloja únicamente `main`, con stage `PRODUCTION` y builds automáticos habilitados. Mantener desactivadas la creación automática de ramas y las vistas previas de PR. La [plantilla opcional de Amplify](../infra/amplify-prod.yaml) reproduce esta configuración para una rama nueva; no es necesaria para la aplicación ya conectada desde la consola.
 
 **Aceptación.** Cada PR supera las pruebas y el build en Node.js 24. El [procedimiento operativo](launch-runbook.md) cubre el alta y la verificación del entorno de producción.
 
@@ -92,11 +94,11 @@ La activación requiere la propiedad GA4, acceso, ID de medición real y lista e
 
 ## F. Publicación en producción
 
-El único destino de publicación es `main`. Cada despliegue requiere aprobación por SHA exacto y el control rechaza vistas previas de PR.
+El único destino de publicación es `main`. Cada push inicia un build mediante la conexión GitHub de Amplify. `amplify.yml` verifica la rama y ejecuta las pruebas y la compilación antes de publicar `dist/`. No se requieren variables de aprobación por SHA ni un rol de despliegue de GitHub. El control de rama rechaza vistas previas de PR.
 
-1. Confirmar cuenta, región, presupuesto y responsables de aprobación y reversión. Exigir CI en `main` antes de aprobar un candidato a publicación.
+1. Confirmar cuenta, región, presupuesto y responsables de publicación y reversión. Exigir CI antes de fusionar PR en `main` mediante la protección de la rama. Amplify y GitHub CI se ejecutan de forma independiente tras un push; las pruebas ejecutadas dentro de Amplify condicionan su publicación.
 2. Confirmar titularidad o compra autorizada de `mactecnologia.com.mx`, variante canónica, control DNS y certificado. Antes del primer cambio, preparar el plan de DNS y conservar el sitio anterior si existe. La compra del dominio, los cambios DNS y la publicación requieren autorización.
-3. Aprobar el SHA candidato. Comprobar build, HTTPS, recursos, contacto y consentimiento antes y después del cambio de dominio. Registrar el SHA y el build publicados. Se proponen etiquetas de versión `vX.Y.Z` para identificar las entregas.
+3. Fusionar el candidato revisado en `main` y seguir el build automático en Amplify. Comprobar build, HTTPS, recursos, contacto y consentimiento antes y después del cambio de dominio. Registrar el SHA y el build publicados. Se proponen etiquetas de versión `vX.Y.Z` para identificar las entregas.
 4. Probar la reversión a un build conocido o mediante un PR de reversión, preservando el historial de `main`. Volver a verificar la versión servida, HTTPS, navegación y contacto después de restaurar.
 
 **Aceptación.** El dominio canónico sirve el candidato aprobado. El registro de entrega permite identificarlo, reproducir la promoción autorizada y demostrar la recuperación de una versión conocida.
