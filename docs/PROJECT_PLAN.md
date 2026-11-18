@@ -23,7 +23,39 @@ Estado de referencia del 16 de noviembre de 2026. Los resultados de pruebas corr
 
 Los dos PR seguían abiertos y sin fusionar en esa revisión. Cada uno reportó 17 pruebas y una compilación local correctas. La validación local conjunta completó 25 pruebas y compiló el sitio correctamente. El [CI de #2](https://github.com/craguilar/mac-web/actions/runs/43752475117) pasó en `df16ffc`.
 
-Actualización del 18 de noviembre de 2026: esos PR ya están integrados. La aplicación Amplify está conectada a GitHub, con builds automáticos de `main` y vistas previas desactivadas. La decisión vigente es desplegar mediante esa conexión directa y ejecutar pruebas/build dentro de Amplify. Se retiran el workflow de despliegue de GitHub y la aprobación temporal por SHA. El DNS y la publicación correcta siguen pendientes de verificación.
+Actualización del 18 de noviembre de 2026: esos PR ya están integrados. Amplify despliega directamente desde GitHub, con builds automáticos de `main`, pruebas/build propios y vistas previas desactivadas. El job 2 terminó en `SUCCEED` para el commit `3bc6a76c3ff370ce6ac20877aa5a02dad706f030`. La asociación de `mactecnologia.com.mx` está en `AVAILABLE` y la raíz responde HTTP 200 mediante HTTPS. La publicación ya está verificada; las funciones de contacto y analítica siguen pendientes.
+
+## Estado frente al plan original
+
+Evaluación del 18 de noviembre de 2026, basada en el código de `main`, los jobs y dominios de Amplify, la respuesta HTTPS pública y el ruleset activo de GitHub. «Pendiente de verificar» no significa que una configuración externa necesariamente falte.
+
+| Área | Estado comprobado | Trabajo restante |
+| --- | --- | --- |
+| A. Integración | Los módulos de #1 y #2 están integrados; pruebas y build funcionan. | Conectar las funciones preparadas a la página cuando se implementen los servicios reales. |
+| B. CI y alojamiento | CI valida PR; Amplify publica `main`. El dominio y HTTPS funcionan. | Exigir **Test and build (Node 24)** antes de fusionar: el ruleset actual exige una revisión, pero no contiene un check de estado obligatorio. |
+| C. Contacto | El formulario valida y permite revisar/copiar el mensaje en memoria. **No envía correo ni registra consultas.** | Confirmar destinatario y proveedor; acordar los campos; implementar endpoint, límites y protección contra abuso, estados de envío y pruebas de recepción. El formulario usa `problem` y nombre obligatorio; el módulo preparado espera `message` y nombre opcional. Resolver esa diferencia antes de conectarlos. |
+| C. Privacidad | No hay aviso de privacidad publicado en el sitio. | Preparar y revisar el aviso ES/EN con los datos reales del responsable, finalidad, proveedores y tratamiento antes de habilitar la recepción. |
+| D. GA4 y consentimiento | Existen una política y un controlador probados, pero están desconectados. No se carga GA4. | Confirmar propiedad/ID y hosts autorizados; integrar aceptar, rechazar y retirar; verificar red y eventos. `generate_lead` requiere entrega real verificada y consentimiento. |
+| E. SEO | Hay título y descripción que cambian con JavaScript; el HTML inicial está en inglés. | Resolver metadatos por idioma para indexación y enlaces compartidos; añadir canonical, hreflang, sitemap, robots y una imagen social. Verificar la variante canónica y sus redirecciones. |
+| E. Seguridad | HTTPS funciona. La respuesta HTML revisada no incluye CSP, HSTS, X-Content-Type-Options ni Referrer-Policy. | Configurar y probar las cabeceras, CSP y caché con los recursos reales; verificar respuestas para rutas inexistentes. |
+| E. Interfaz y accesibilidad | Contenido ES/EN, navegación y pruebas estáticas disponibles. Este cambio retira las etiquetas de prototipo y los comentarios de revisión de diseño, conservando el aviso funcional del formulario. | Completar revisión de teclado/lector de pantalla, Safari/iOS, Chrome/Android y rendimiento en dispositivos reales. Las pruebas locales de layout no sustituyen esa matriz. |
+| F. Operación y recuperación | Publicación automática y dominio comprobados. El runbook describe una reversión mediante PR. | Verificar alertas de disponibilidad, errores y gasto, responsables operativos y una prueba real de reversión. Su configuración externa no se ha auditado. |
+| G. Campaña | Etapa posterior al lanzamiento funcional; sin evidencia de ejecución en esta revisión. | Confirmar objetivo, oferta, cuenta y presupuesto; preparar campaña y conversiones después de verificar contacto y consentimiento. |
+
+### Selección de idioma actual
+
+`?lang=es` abre español; `?lang=en`, un valor no reconocido o la ausencia del parámetro abren inglés. El selector ES/EN cambia el idioma y actualiza la URL. No consulta el idioma del navegador ni guarda una preferencia entre visitas sin ese parámetro.
+
+La detección del navegador sería una mejora adicional: el plan original exige equivalencia ES/EN, pero no define detección automática. Una política posible es respetar primero el parámetro explícito, después una elección guardada y finalmente el idioma del navegador, con español como fallback para el mercado objetivo. No se implementa esa política en esta limpieza visual.
+
+### Prioridad de trabajo
+
+1. Habilitar contacto real y publicar su aviso de privacidad.
+2. Resolver idioma inicial y SEO bilingüe; finalizar la revisión visual y de accesibilidad.
+3. Completar cabeceras, CI obligatorio, monitoreo y recuperación.
+4. Integrar GA4 con consentimiento y comprobar las conversiones reales.
+5. Iniciar la campaña aprobada cuando el recorrido de contacto esté verificado.
+
 
 ## A. Integración y verificación local
 

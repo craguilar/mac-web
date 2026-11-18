@@ -700,3 +700,16 @@ dialog .copy-status:empty{display:none}
 .contact .optional-details summary:hover{color:#fff}
 @container site (max-width:1000px){.monolith .service-visible .service-title{min-height:0;font-size:31px}}
 @container site (max-width:680px){.monolith .hero{padding-top:10px}.monolith .hero h1{font-size:clamp(35px,9.7cqw,54px)}.monolith .hero-heading .eyebrow{margin-bottom:14px}.monolith .hero-composition{margin-top:18px}.monolith .hero-lead{line-height:1.65}.monolith .hero-aside{padding-bottom:0}.monolith .hero-actions{column-gap:18px;row-gap:0}.monolith .hero-actions .button,.monolith .hero-actions .secondary-link{margin-top:12px}.monolith .hero-composition .drawing{max-width:155px;margin-top:12px;margin-bottom:0}.monolith .drawing .architecture-art{max-height:140px}.monolith .drawing-footer{display:none}.monolith .services{padding-top:32px;padding-bottom:48px;gap:25px}.monolith .services .section-label h2{font-size:clamp(32px,8.7cqw,43px)}.monolith .service-flow{gap:33px}.monolith .service-visible .service-title{font-size:clamp(27px,7.2cqw,34px);min-height:0}.monolith .service-visible .service-content{gap:15px}.monolith .service-visible .service-description{font-size:16px;line-height:1.7}.monolith .service-visible .service-detail ul{margin-top:10px}.contact .preview-notice{padding-bottom:0}.contact .optional-details summary{font-size:13px}.contact .field-hint{font-size:13px}}
+
+/* Keep language selection with the site navigation at every screen size. */
+.header-controls{display:flex;align-items:center;gap:12px;flex:none;order:2}
+.site-header nav{order:1;margin-left:auto}
+@container site (max-width:900px){
+  .site-header{flex-wrap:wrap}
+  .site-header nav{flex-basis:100%;order:3;margin-left:0;justify-content:flex-end}
+}
+@container site (max-width:680px){
+  .monolith .site-header .brand{max-width:none}
+  .header-controls{width:100%;justify-content:space-between;order:1}
+  .site-header nav{order:2}
+}
