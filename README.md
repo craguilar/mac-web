@@ -4,7 +4,7 @@ Prototipo bilingüe de la página de MAC Tecnología. Esta exportación contiene
 
 ## Especificación de lanzamiento
 
-La [especificación técnica](docs/PROJECT_PLAN.md) define los requisitos del sitio bilingüe, el contrato de contacto, el consentimiento para GA4 y los criterios de aceptación para desarrollo y producción en AWS Amplify Hosting.
+La [especificación técnica](docs/PROJECT_PLAN.md) define los requisitos del sitio bilingüe, el contrato de contacto, el consentimiento para GA4 y los criterios de aceptación para producción en AWS Amplify Hosting.
 
 ## Ejecutar localmente
 
@@ -47,7 +47,7 @@ La versión actual incorpora textos de servicios más concretos, contenido visib
 - No hay servidor de contacto, analítica, cookies, almacenamiento persistente, credenciales ni integración de correo.
 - Los servicios y el destino de contacto requieren confirmación antes de producción.
 - Antes del lanzamiento: confirmar dominio y contacto, implementar y probar el envío real, definir los avisos de privacidad necesarios, configurar cabeceras de seguridad del alojamiento y completar revisión de accesibilidad y compatibilidad de navegadores.
-- Este repositorio no activa GitHub Pages ni publica un sitio de producción.
+- La publicación en AWS Amplify requiere aprobación del commit.
 
 ## Licencias
 
@@ -55,6 +55,6 @@ Las fuentes de terceros se distribuyen con Apache-2.0 y OFL-1.1, según `THIRD_P
 
 No se ha elegido una licencia de código abierto para el código, diseño o textos originales. La visibilidad pública del repositorio no sustituye esa decisión. Las licencias de las fuentes no se extienden al resto del proyecto.
 
-## Despliegue de desarrollo
+## Despliegue en producción
 
-Con el pipeline habilitado, AWS Amplify recibe los pushes a `dev`, comprueba el commit, ejecuta las pruebas y publica `dist/` en el sitio de desarrollo protegido por contraseña. GitHub Actions valida los PR. La [guía de despliegue](docs/launch-runbook.md) explica cómo configurar la conexión, habilitar o pausar el pipeline y verificar el build publicado.
+AWS Amplify usa `main` como único entorno de publicación. Cada despliegue aprobado ejecuta las pruebas y compila el sitio con Node.js 24 antes de publicar `dist/`. GitHub Actions valida los PR. La [guía de despliegue](docs/launch-runbook.md) describe la configuración, publicación y reversión.

@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Private dev pipeline for the MAC Tecnologia static site on Amplify Hosting.
+Description: Single production environment for the MAC Tecnologia static site on Amplify Hosting.
 
 Parameters:
   ExistingAppId:
@@ -11,15 +11,7 @@ Parameters:
     Type: String
     Default: ''
     Description: For a new app only, the name of a Secrets Manager secret containing the GitHub token as plain text.
-  DevAccessSecret:
-    Type: String
-    MinLength: 1
-    Description: Name of a Secrets Manager secret containing the JSON keys username and password for dev.
-  ContinuousDeploy:
-    Type: String
-    Default: 'false'
-    AllowedValues: ['false', 'true']
-    Description: Enable deployments on pushes to the dev branch.
+
 
 Rules:
   RequireTokenForNewApp:
@@ -30,33 +22,28 @@ Rules:
 
 Conditions:
   CreateApp: !Equals [!Ref ExistingAppId, '']
-  DeployOnPush: !Equals [!Ref ContinuousDeploy, 'true']
 
 Resources:
   HostingApp:
     Type: AWS::Amplify::App
     Condition: CreateApp
     Properties:
-      Name: mac-web-dev
+      Name: mac-web
+      EnableBranchAutoBuild: false
+      EnableBranchAutoDeletion: false
+      EnableAutoBranchCreation: false
       Platform: WEB
       Repository: https://github.com/craguilar/mac-web
       AccessToken: !Sub '{{resolve:secretsmanager:${GitHubTokenSecret}:SecretString}}'
 
-  DevBranch:
+  ProductionBranch:
     Type: AWS::Amplify::Branch
     Properties:
       AppId: !If [CreateApp, !GetAtt HostingApp.AppId, !Ref ExistingAppId]
-      BranchName: dev
-      Stage: DEVELOPMENT
-      EnableAutoBuild: !If [DeployOnPush, true, false]
+      BranchName: main
+      Stage: PRODUCTION
+      EnableAutoBuild: false
       EnablePullRequestPreview: false
-      BasicAuthConfig:
-        EnableBasicAuth: true
-        Username: !Sub '{{resolve:secretsmanager:${DevAccessSecret}:SecretString:username}}'
-        Password: !Sub '{{resolve:secretsmanager:${DevAccessSecret}:SecretString:password}}'
-      EnvironmentVariables:
-        - Name: MAC_AMPLIFY_CONTINUOUS_DEV
-          Value: !Ref ContinuousDeploy
 
 Outputs:
   AppId:

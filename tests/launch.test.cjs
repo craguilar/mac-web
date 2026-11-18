@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {assertDeployApproval} = require('../scripts/check-deploy-approval.cjs');
 const sha = '1234567890abcdef1234567890abcdef12345678';
-const approved = {AWS_BRANCH: 'dev', MAC_AMPLIFY_DEPLOY_APPROVED: 'true', MAC_AMPLIFY_APPROVED_BRANCH: 'dev', AWS_COMMIT_ID: sha, MAC_AMPLIFY_APPROVED_COMMIT: sha};
+const approved = {AWS_BRANCH: 'main', MAC_AMPLIFY_DEPLOY_APPROVED: 'true', MAC_AMPLIFY_APPROVED_BRANCH: 'main', AWS_COMMIT_ID: sha, MAC_AMPLIFY_APPROVED_COMMIT: sha};
 
 test('deployment gate rejects missing, false, mismatched and PR-preview approval', () => {
   for (const env of [
@@ -27,17 +27,13 @@ test('deployment gate accepts explicit approval for exactly one branch and commi
   assert.doesNotThrow(() => assertDeployApproval({...approved, AWS_COMMIT_ID: 'HEAD'}, sha));
 });
 
-test('continuous deployment requires an opted-in dev branch, matching SHA and no PR preview', () => {
-  const push = {AWS_BRANCH: 'dev', AWS_COMMIT_ID: sha, MAC_AMPLIFY_CONTINUOUS_DEV: 'true'};
-  assert.doesNotThrow(() => assertDeployApproval(push, sha));
-  for (const override of [
-    {AWS_BRANCH: 'main'}, {AWS_BRANCH: 'feature/dev'}, {AWS_PULL_REQUEST_ID: '17'},
-    {AWS_COMMIT_ID: 'HEAD'}, {AWS_COMMIT_ID: '0'.repeat(40)}, {AWS_COMMIT_ID: undefined},
-    {MAC_AMPLIFY_CONTINUOUS_DEV: undefined}, {MAC_AMPLIFY_CONTINUOUS_DEV: 'false'}
-  ]) assert.throws(() => assertDeployApproval({...push, ...override}, sha));
-  assert.throws(() => assertDeployApproval({...push, AWS_COMMIT_ID: 'HEAD'}, 'HEAD'));
-  // An operator can still rebuild a specifically approved commit when AWS reports HEAD.
-  assert.doesNotThrow(() => assertDeployApproval({...push, ...approved, AWS_COMMIT_ID: 'HEAD'}, sha));
+test('deployment gate rejects a fully approved commit on any non-production branch', () => {
+  for (const branch of ['dev', 'feature/main']) {
+    assert.throws(
+      () => assertDeployApproval({...approved, AWS_BRANCH: branch, MAC_AMPLIFY_APPROVED_BRANCH: branch}, sha),
+      /Only the main branch/
+    );
+  }
 });
 
 test('CI remains validation-only with pinned actions and no installation dependency', () => {

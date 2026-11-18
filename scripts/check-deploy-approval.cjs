@@ -8,14 +8,13 @@ function assertDeployApproval(env, checkoutCommit) {
   if (!/^[a-f0-9]{40}$/.test(checkoutCommit || '')) {
     throw new Error('The checked-out source must have a full commit SHA.');
   }
-  // Only the dev push path can use the branch policy in place of a one-off approval.
-  if (env.MAC_AMPLIFY_CONTINUOUS_DEV === 'true' && env.AWS_BRANCH === 'dev' && env.AWS_COMMIT_ID === checkoutCommit) {
-    return;
-  }
   if (env.MAC_AMPLIFY_DEPLOY_APPROVED !== 'true') {
     throw new Error('Deployment is not approved. Follow docs/launch-runbook.md before enabling this branch.');
   }
-  if (!env.AWS_BRANCH || env.MAC_AMPLIFY_APPROVED_BRANCH !== env.AWS_BRANCH) {
+  if (env.AWS_BRANCH !== 'main') {
+    throw new Error('Only the main branch can deploy to production.');
+  }
+  if (env.MAC_AMPLIFY_APPROVED_BRANCH !== env.AWS_BRANCH) {
     throw new Error('Deployment approval must match the exact Amplify branch.');
   }
   if (env.MAC_AMPLIFY_APPROVED_COMMIT !== checkoutCommit) {

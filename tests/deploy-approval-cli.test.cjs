@@ -20,14 +20,14 @@ function fixture(t) {
   git(['add', '.']);
   git(['-c', 'user.name=Test fixture', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgsign=false', 'commit', '-qm', 'Test fixture only']);
   const sha = git(['rev-parse', 'HEAD']);
-  const approval = {AWS_BRANCH: 'dev', AWS_COMMIT_ID: sha, MAC_AMPLIFY_DEPLOY_APPROVED: 'true', MAC_AMPLIFY_APPROVED_BRANCH: 'dev', MAC_AMPLIFY_APPROVED_COMMIT: sha};
+  const approval = {AWS_BRANCH: 'main', AWS_COMMIT_ID: sha, MAC_AMPLIFY_DEPLOY_APPROVED: 'true', MAC_AMPLIFY_APPROVED_BRANCH: 'main', MAC_AMPLIFY_APPROVED_COMMIT: sha};
   const run = overrides => cp.spawnSync(process.execPath, ['scripts/check-deploy-approval.cjs'], {cwd: root, env: {...env, ...overrides}, encoding: 'utf8'});
   return {root, sha, approval, run, git};
 }
 
 test('approval CLI fails closed and supports exact-commit and HEAD rebuild metadata', t => {
   const {approval, run} = fixture(t);
-  const denied = run({});
+  const denied = run({AWS_BRANCH: 'main'});
   assert.equal(denied.status, 1);
   assert.match(denied.stderr, /Deployment is not approved/);
   for (const env of [approval, {...approval, AWS_COMMIT_ID: 'HEAD'}]) {
@@ -36,7 +36,7 @@ test('approval CLI fails closed and supports exact-commit and HEAD rebuild metad
     assert.match(accepted.stdout, /gate passed/);
   }
   for (const env of [
-    {...approval, AWS_BRANCH: 'main'},
+    {...approval, AWS_BRANCH: 'dev', MAC_AMPLIFY_APPROVED_BRANCH: 'dev'},
     {...approval, MAC_AMPLIFY_APPROVED_COMMIT: '0'.repeat(40)},
     {...approval, AWS_COMMIT_ID: '0'.repeat(40)},
     {...approval, AWS_PULL_REQUEST_ID: '42'}
@@ -53,17 +53,6 @@ test('approval CLI rejects both unstaged and staged changes for the approved com
   const staged = run(approval);
   assert.equal(staged.status, 1);
   assert.match(staged.stderr, /Tracked source changed/);
-});
-
-test('continuous dev accepts the pushed checkout and still rejects untracked source', t => {
-  const {root, run, sha} = fixture(t);
-  const push = {AWS_BRANCH: 'dev', AWS_COMMIT_ID: sha, MAC_AMPLIFY_CONTINUOUS_DEV: 'true'};
-  const clean = run(push);
-  assert.equal(clean.status, 0, clean.stderr);
-  fs.writeFileSync(path.join(root, 'public/untracked.txt'), 'Not part of the pushed commit');
-  const dirty = run(push);
-  assert.equal(dirty.status, 1);
-  assert.match(dirty.stderr, /Untracked build inputs/);
 });
 
 test('approval CLI permits ignored build output outside source inputs', t => {
