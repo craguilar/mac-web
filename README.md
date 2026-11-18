@@ -57,4 +57,4 @@ No se ha elegido una licencia de código abierto para el código, diseño o text
 
 ## Despliegue en producción
 
-AWS Amplify usa `main` como único entorno de publicación. Cada despliegue aprobado ejecuta las pruebas y compila el sitio con Node.js 24 antes de publicar `dist/`. GitHub Actions valida los PR. La [guía de despliegue](docs/launch-runbook.md) describe la configuración, publicación y reversión.
+AWS Amplify publica la rama `main`. Después de configurar el entorno `production` en GitHub, abrir **Actions → Deploy to AWS Amplify → Run workflow** y seleccionar `main`. La ejecución prueba el commit, inicia el build de Amplify y muestra el resultado del despliegue. La [guía de despliegue](docs/launch-runbook.md#configurar-el-despliegue-desde-github-actions) describe el rol AWS, las tres variables necesarias y la reversión.
