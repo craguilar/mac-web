@@ -26,7 +26,8 @@ const codeql = {state: 'configured', query_suite: 'extended', languages: ['actio
 const repo = 'craguilar/mac-web';
 const ownerId = 6916098;
 const checkName = 'Test and build (Node 24)';
-const ownerBypass = () => [{actor_id: ownerId, actor_type: 'User', bypass_mode: 'pull_request'}];
+// The separate no-bypass rulesets still require a PR and CI for the owner.
+const ownerExemption = () => [{actor_id: ownerId, actor_type: 'User', bypass_mode: 'exempt'}];
 const mainConditions = () => ({ref_name: {include: ['refs/heads/main', '~DEFAULT_BRANCH'], exclude: []}});
 
 export function validateOwner(user: User, repository: Repository) {
@@ -40,7 +41,7 @@ export function validateOwner(user: User, repository: Repository) {
 export function reviewRuleset(existing: Ruleset): Ruleset {
   const body = structuredClone(existing);
   body.enforcement = 'active';
-  body.bypass_actors = ownerBypass();
+  body.bypass_actors = ownerExemption();
   const review = body.rules.find(rule => rule.type === 'pull_request');
   if (!review?.parameters) throw new Error('Expected the existing pull request rule; inspect repository rules before proceeding.');
   Object.assign(review.parameters, {
@@ -57,7 +58,7 @@ export function reviewRuleset(existing: Ruleset): Ruleset {
 export function ownerMergeRuleset(): Ruleset {
   return {
     name: 'Only craguilar may merge main', target: 'branch', enforcement: 'active',
-    bypass_actors: ownerBypass(), conditions: mainConditions(),
+    bypass_actors: ownerExemption(), conditions: mainConditions(),
     rules: [{type: 'update'}],
   };
 }

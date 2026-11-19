@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {reviewRuleset, ciRuleset, ownerMergeRuleset, branchSafetyRuleset, validateOwner, assertSettings, codeqlConfigured, type Ruleset} from '../scripts/harden-github.ts';
 
-const owner = {actor_id: 6916098, actor_type: 'User', bypass_mode: 'pull_request'};
+const owner = {actor_id: 6916098, actor_type: 'User', bypass_mode: 'exempt'};
 const original: Ruleset = {
   name: 'Main enforced', target: 'branch', enforcement: 'active',
   bypass_actors: [{actor_id: 2, actor_type: 'RepositoryRole', bypass_mode: 'always'}],

@@ -11,7 +11,7 @@ test('SES acceptance delivers normalized fields to fixed inbox with visitor Repl
  const {handler,sent}=setup();const result=await handler(event({...valid,to:'attacker@example.test'}));
  assert.equal(result.statusCode,200);assert.deepEqual(JSON.parse(result.body),{ok:true});assert.equal(sent.length,1);
  assert.deepEqual(sent[0].Destination,{ToAddresses:['owner@example.test']});assert.deepEqual(sent[0].ReplyToAddresses,[valid.email]);
- assert.equal(sent[0].FromEmailAddress,'MAC Tecnología <web@mactecnologia.com.mx>');
+ assert.equal(sent[0].FromEmailAddress,'web@mactecnologia.com.mx');
  const text=sent[0].Content?.Simple?.Body?.Text?.Data;assert.ok(text);assert.match(text,/Name \/ Nombre: Ana/);assert.match(text,/Example/);assert.match(text,/architecture/);assert.match(text,/Consulta de integración/);
  assert.doesNotMatch(result.body,/owner@|ana@/);
 });

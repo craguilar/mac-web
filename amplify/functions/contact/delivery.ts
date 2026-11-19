@@ -38,7 +38,7 @@ export function createHandler({sendEmail, recipient, sender, origins, verifyChal
     ].join('\n');
     try {
       await sendEmail({
-        FromEmailAddress: `MAC Tecnología <${sender}>`,
+        FromEmailAddress: sender,
         Destination: {ToAddresses:[recipient]}, ReplyToAddresses:[v.email],
         Content: {Simple: {
           Subject: {Data:v.language === 'es' ? 'Nueva consulta · MAC Tecnología' : 'New inquiry · MAC Tecnología', Charset:'UTF-8'},

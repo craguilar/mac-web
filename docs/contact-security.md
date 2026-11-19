@@ -29,12 +29,12 @@ Solo `craguilar` puede fusionar hacia `main`, aunque otra persona apruebe el PR.
 
 | Regla | Control |
 | --- | --- |
-| Only craguilar may merge main | Solo la cuenta exacta del propietario puede actualizar la rama mediante PR |
+| Only craguilar may merge main | Solo la cuenta exacta de `craguilar` está exenta de la restricción de actualización |
 | Main safety without bypass | PR obligatorio, conversaciones resueltas, sin borrado ni force pushes; sin excepciones |
 | Required CI for main | Rama actualizada y check `Test and build (Node 24)` de GitHub Actions; sin excepciones |
-| Main enforced | Revisión de CODEOWNERS, aprobaciones caducadas al cambiar código y revisión del último push |
+| Main enforced | Revisión de CODEOWNERS y del último push para los demás actores |
 
-El propietario tiene una excepción **solo de revisión y solo mediante PR** para poder fusionar sus propios cambios. No evita CI, conversaciones pendientes ni las otras protecciones. `CODEOWNERS` asigna todos los archivos a `craguilar` cuando este archivo está en la rama base. Auto-merge está desactivado. El propietario sigue pudiendo administrar las reglas; proteger su cuenta con MFA/passkey y sus tokens es esencial.
+GitHub aplica automáticamente las excepciones de actualización y revisión a `craguilar`. Puede fusionar sus PRs cuando CI pase y se resuelvan las conversaciones, sin pedir una segunda aprobación. Las reglas independientes también exigen PR al propietario y bloquean borrados y force pushes. `CODEOWNERS` asigna todos los archivos a `craguilar` cuando este archivo está en la rama base. Auto-merge está desactivado. El propietario sigue pudiendo administrar las reglas; proteger su cuenta con MFA/passkey y sus tokens es esencial.
 
 Desde la raíz del repositorio, con Node 24 y `gh` autenticado como `craguilar`:
 
