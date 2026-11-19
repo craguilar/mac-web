@@ -12,6 +12,25 @@ class DeploymentSecurity(unittest.TestCase):
  def setUpClass(cls):
   cls.prerequisites=yaml.safe_load((ROOT/'infra/contact-prerequisites.yaml').read_text(encoding='utf-8'))
   cls.bootstrap=yaml.safe_load((ROOT/'infra/contact-bootstrap.yaml').read_text(encoding='utf-8'))
+ def test_amplify_trust_accepts_only_the_production_branch(self):
+  trust=self.prerequisites['Resources']['AmplifyBackendRole']['Properties']['AssumeRolePolicyDocument']['Statement']
+  self.assertEqual(len(trust),1)
+  statement=trust[0]
+  self.assertEqual(statement['Effect'],'Allow')
+  self.assertEqual(statement['Principal'],{'Service':'amplify.amazonaws.com'})
+  self.assertEqual(statement['Action'],'sts:AssumeRole')
+  conditions=statement['Condition']
+  self.assertEqual(set(conditions),{'StringEquals','ArnEquals'})
+  self.assertEqual(conditions['StringEquals'],{'aws:SourceAccount':{'Ref':'AWS::AccountId'}})
+  self.assertEqual(set(conditions['ArnEquals']),{'aws:SourceArn'})
+  source=conditions['ArnEquals']['aws:SourceArn']['Fn::Sub']
+  substitutions={'AWS::Partition':'aws','AWS::Region':'us-east-2','AWS::AccountId':'123456789012','AmplifyAppId':'testapp'}
+  for key,value in substitutions.items():source=source.replace('${'+key+'}',value)
+  app_arn='arn:aws:amplify:us-east-2:123456789012:apps/testapp'
+  # Amplify assumes its service role using the branch ARN, not the app ARN.
+  self.assertEqual(source,app_arn+'/branches/main')
+  for rejected in [app_arn,app_arn+'/branches/dev',app_arn+'/branches/pr-1',app_arn+'other/branches/main',app_arn.replace('123456789012','999999999999')+'/branches/main']:
+   with self.subTest(source_arn=rejected):self.assertNotEqual(source,rejected)
  def test_fixed_api_and_throttle(self):
   resources=self.prerequisites['Resources']
   cors=resources['ContactApi']['Properties']['CorsConfiguration']

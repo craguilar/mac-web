@@ -58,7 +58,8 @@ Resources:
                 Ref: AWS::AccountId
             ArnEquals:
               aws:SourceArn:
-                Fn::Sub: arn:${AWS::Partition}:amplify:${AWS::Region}:${AWS::AccountId}:apps/${AmplifyAppId}
+                # Amplify supplies the branch ARN when assuming its service role.
+                Fn::Sub: arn:${AWS::Partition}:amplify:${AWS::Region}:${AWS::AccountId}:apps/${AmplifyAppId}/branches/main
       Policies:
       - PolicyName: MacContactDeployment
         PolicyDocument:
