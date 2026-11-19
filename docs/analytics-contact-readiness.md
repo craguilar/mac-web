@@ -2,14 +2,14 @@
 
 ## Estado de esta propuesta
 
-Preparación, no activación. La página continúa sin enviar formularios ni cargar Google Analytics. `analytics-policy.js` es una política pura, probada y **no incluida en index.html**; no instala etiquetas, cookies ni almacena decisiones. No representa una integración terminada. La vista previa de contacto nunca equivale a una consulta enviada.
+El envío de contacto está implementado con Amplify Gen 2 y SES; requiere despliegue y prueba de recepción. Google Analytics sigue desconectado. `analytics-policy.js` es una política pura, probada y **no incluida en index.html**; no instala etiquetas, cookies ni almacena decisiones. No representa una integración terminada. Una respuesta exitosa de SES no equivale por sí sola a recepción en el buzón.
 
 ## Decisiones y datos pendientes
 
 | Área | Necesario para activar | Criterio de salida |
 | --- | --- | --- |
 | GA4 | Propiedad de Carlos, ID real y dominios de producción confirmados | Etiqueta solo después de consentimiento explícito y solo en producción |
-| Contacto | Correo real destinatario, responsable, canal y plazo de respuesta | Envío de prueba recibido y respuesta visible solo tras éxito del servidor |
+| Contacto | Destinatario y canal AWS confirmados; falta recepción real, responsable y plazo de respuesta | Envío de prueba recibido y respuesta visible solo tras éxito del servidor |
 | Privacidad | Identidad y contacto del responsable, finalidades, proveedores, conservación y mecanismo de derechos confirmados | Aviso revisado y enlazado en español e inglés |
 | Infraestructura | Cuenta/región AWS y arquitectura del envío aprobadas | Secretos solo del lado servidor; controles contra abuso y monitoreo |
 
@@ -25,9 +25,9 @@ No se inventarán correo, razón social, domicilio, periodos de conservación ni
 6. No enviar nombres, correo, teléfono, texto del mensaje ni parámetros de URL. `generate_lead` permanece excluido hasta implementar envío real verificado, sin duplicados.
 7. No medir previews de Amplify, localhost ni ramas de desarrollo. El dominio exacto debe estar en lista permitida; un ID válido no basta.
 
-## Contacto: contrato a implementar
+## Contacto: contrato y verificación
 
-- Mantener el formulario marcado como vista previa hasta conectar un servicio real.
+- Usar el contrato y configuración de la [guía de despliegue](launch-runbook.md); el build local desconectado informa que no puede enviar.
 - Recibir por HTTPS solo campos necesarios, con límites de longitud y validación en servidor. No confiar en validación del navegador.
 - Configurar origen permitido exacto, control de frecuencia, mitigación de bots y límite de tamaño. No registrar el cuerpo ni datos personales en logs de errores o analítica.
 - No poner credenciales de correo en JavaScript ni en variables exportadas al cliente.
@@ -55,5 +55,5 @@ Este documento es un checklist técnico, no un aviso de privacidad ni asesoría 
 ## Componentes implementados en el seguimiento
 
 - `consent-controller.js`: máquina de estado sin almacenamiento ni carga de terceros; requiere un adaptador auditado, no incluido. Inicia solo con opt-in/configuración válida, filtra eventos y detiene envío al retirar consentimiento. El adaptador debe descartar colas, cancelar cargas pendientes y limpiar cookies cuando corresponda.
-- `contact-validation.js`: contrato propuesto del futuro endpoint: nombre opcional (100 caracteres), correo obligatorio (254), mensaje obligatorio (4000), idioma ES/EN. Recorta espacios, descarta campos desconocidos y rechaza controles/inyección de cabeceras. No sustituye validación de servidor, escape de salida, controles de abuso ni verificación de entrega.
-- Ambos módulos permanecen sin enlazar a la página; no cambian la experiencia aprobada ni simulan envío. Tests con adaptador falso, sin Google ni correo real.
+- `contact-validation.js`: contrato compartido por formulario y endpoint: nombre obligatorio (160), correo obligatorio (254), mensaje obligatorio (3000), empresa opcional (160), tema enumerado opcional e idioma ES/EN. Recorta espacios, descarta campos desconocidos y rechaza controles/inyección de cabeceras. No sustituye validación de servidor, escape de salida, controles de abuso ni verificación de entrega.
+- El validador de contacto está enlazado a la página y se reutiliza en Lambda. El controlador de consentimiento permanece desconectado. Las pruebas usan adaptadores simulados, sin Google ni correo real.

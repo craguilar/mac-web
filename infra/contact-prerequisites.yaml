@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: SES sender domain and backend deployment role for the existing MAC Amplify app.
+Parameters:
+  AmplifyAppId:
+    Type: String
+    AllowedPattern: '[a-z0-9]+'
+  HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+    Description: Existing public hosted zone for mactecnologia.com.mx
+Resources:
+  SenderDomain:
+    Type: AWS::SES::EmailIdentity
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      EmailIdentity: mactecnologia.com.mx
+      DkimAttributes:
+        SigningEnabled: true
+      DkimSigningAttributes:
+        NextSigningKeyLength: RSA_2048_BIT
+  SenderDkim:
+    Type: AWS::Route53::RecordSetGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      RecordSets:
+        - Name: !GetAtt SenderDomain.DkimDNSTokenName1
+          Type: CNAME
+          TTL: '300'
+          ResourceRecords: [!GetAtt SenderDomain.DkimDNSTokenValue1]
+        - Name: !GetAtt SenderDomain.DkimDNSTokenName2
+          Type: CNAME
+          TTL: '300'
+          ResourceRecords: [!GetAtt SenderDomain.DkimDNSTokenValue2]
+        - Name: !GetAtt SenderDomain.DkimDNSTokenName3
+          Type: CNAME
+          TTL: '300'
+          ResourceRecords: [!GetAtt SenderDomain.DkimDNSTokenValue3]
+  AmplifyBackendRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: amplify.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              ArnEquals:
+                aws:SourceArn: !Sub arn:${AWS::Partition}:amplify:${AWS::Region}:${AWS::AccountId}:apps/${AmplifyAppId}
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AmplifyBackendDeployFullAccess
+Outputs:
+  ServiceRoleArn:
+    Value: !GetAtt AmplifyBackendRole.Arn

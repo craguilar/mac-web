@@ -29,7 +29,10 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
-      # No dependencies or lockfile: npm ci and dependency caching are intentionally omitted.
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check backend types
+        run: npm run check
       - name: Run syntax and regression tests
         run: npm test
       - name: Build static files and license notices

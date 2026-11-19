@@ -2,12 +2,26 @@
   "name": "mac-tecnologia",
   "version": "0.1.0",
   "private": true,
-  "description": "Prototipo estático bilingüe de MAC Tecnología",
+  "description": "Sitio bilingüe de MAC Tecnología con contacto en AWS Amplify",
   "scripts": {
-    "test": "node --check public/assets/app.js && node --check public/assets/content.js && node --test tests/*.test.cjs",
-    "build": "node scripts/build.cjs"
+    "test": "node --check public/assets/app.js && node --check public/assets/content.js && node --test tests/*.test.cjs && node --import tsx --test tests/contact-infra.test.ts",
+    "build": "node scripts/build.cjs",
+    "check": "tsc --project amplify/tsconfig.json"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@aws-amplify/backend": "1.25.1",
+    "@aws-amplify/backend-cli": "1.10.0",
+    "@types/aws-lambda": "8.10.164",
+    "@types/node": "24.19.2",
+    "aws-cdk-lib": "2.277.0",
+    "constructs": "10.8.1",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sesv2": "3.1172.0"
   }
 }

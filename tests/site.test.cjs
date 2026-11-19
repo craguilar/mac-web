@@ -33,13 +33,13 @@ test('HTML and CSS resource links are local, portable and present', () => {
     assert.ok(fs.existsSync(path.resolve(base, ref)), ref);
   }
 });
-test('form remains a local preview without network calls or persistent storage', () => {
-  assert.match(app, /e\.preventDefault\(\)/);
-  assert.match(app, /dd\.textContent=/);
-  assert.match(app, /dialog\.showModal\(\)/);
-  assert.doesNotMatch(app, /\b(?:fetch|XMLHttpRequest|WebSocket|localStorage|sessionStorage|indexedDB)\b/);
-  assert.doesNotMatch(app, /https?:\/\//);
+test('contact loads shared validation and delivery without persistent browser storage', () => {
+  assert.match(html, /contact-validation.js/);
+  assert.match(html, /contact-client.js/);
+  assert.match(app, /macContactClient.sendContact/);
+  assert.doesNotMatch(app, /\b(?:localStorage|sessionStorage|indexedDB)\b/);
 });
+
 test('export has no gallery links, private site IDs or unrelated variants', () => {
   for (const value of [html, app, css, read('assets/content.js')]) {
     assert.doesNotMatch(value, /appgprj_|appgver_|libfile_|\/workspace\/|chatgpt\.site|chatgpt-team|structure-variations|monolito-refined|pavilion|blueprint/i);
@@ -61,22 +61,19 @@ test('licensed font bytes match the audited asset checksums', () => {
 test('streamlined design has visible services and optional contact details', () => {
   assert.doesNotMatch(app, /layerStudy|data-layer-button/);
   assert.match(app, /class="optional-details full"/);
-  assert.match(app, /if\(!value\)return/);
-  assert.match(app, /if\(form\.elements\.topic\.value\)/);
   assert.match(css, /max-width:155px/);
   assert.equal(content.es.st[0], 'Crear o mejorar software');
   assert.equal(content.en.st[2], 'Improve testing and releases');
   assert.equal(context.window.consultingExtra.es.scope, 'Posibles alcances');
 });
 
-test('message review offers accessible copy, fallback and reversible clearing', () => {
-  assert.match(app, /aria-describedby="review-note"/);
-  assert.match(app, /navigator\.clipboard\.writeText\(message\)/);
-  assert.match(app, /fallback\.querySelector\('textarea'\)\.value=message/);
+test('contact has accessible status and reversible clearing', () => {
+  assert.match(app, /class="send-feedback full" role="status"/);
   assert.match(app, /clearSnapshot=values/);
   assert.match(app, /undo\.addEventListener\('click'/);
-  assert.match(app, /form\.querySelector\('\[type=submit\]'\)\.focus/);
   assert.match(app, /maxlength="3000"/);
+  assert.equal(content.es.submit, 'Enviar mensaje');
+  assert.equal(content.en.submit, 'Send message');
 });
 
 test('contact body, input and placeholder colors have at least 4.5:1 contrast', () => {

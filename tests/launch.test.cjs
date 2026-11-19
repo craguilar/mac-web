@@ -24,7 +24,7 @@ test('production branch check rejects missing branches, other branches and PR pr
   }
 });
 
-test('CI remains validation-only with pinned actions and no installation dependency', () => {
+test('CI remains validation-only with pinned actions and locked dependencies', () => {
   const root = path.resolve(__dirname, '..');
   const workflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
   assert.match(workflow, /contents: read/);
@@ -35,9 +35,10 @@ test('CI remains validation-only with pinned actions and no installation depende
   assert.deepEqual(actions.map(m => m[1]), ['actions/checkout', 'actions/setup-node']);
   assert.match(workflow, /run: npm test/);
   assert.match(workflow, /run: npm run build/);
-  assert.doesNotMatch(workflow, /pull_request_target|id-token:|secrets\.|configure-aws-credentials|run:.*(?:npm ci|deploy|amplify publish)/);
+  assert.doesNotMatch(workflow, /pull_request_target|id-token:|secrets\.|configure-aws-credentials|run:.*(?:deploy|amplify publish)/);
   const spec = fs.readFileSync(path.join(root, 'amplify.yml'), 'utf8');
   assert.match(spec, /node scripts\/check-deploy-branch\.cjs/);
   assert.match(spec, /baseDirectory: dist/);
-  assert.doesNotMatch(spec, /^backend:/m);
+  assert.match(workflow, /run: npm ci/);
+  assert.match(spec, /pipeline-deploy/);
 });

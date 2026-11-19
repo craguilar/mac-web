@@ -7,10 +7,10 @@ const valid={name:' Ana ',email:'ana@example.test',message:' Consulta ',language
 test('contact boundary trims fields, excludes unknown keys and preserves Spanish',()=>{
   assert.deepEqual(validateContact({...valid,name:' María ',token:'secret',admin:true}),{ok:true,value:{name:'María',email:valid.email,message:'Consulta',language:'es'}});
 });
-test('contact name remains optional',()=>{assert.equal(validateContact({...valid,name:''}).ok,true);});
+test('contact requires a name and retains optional company and topic',()=>{assert.equal(validateContact({...valid,name:''}).ok,false);assert.equal(validateContact({...valid,company:' Example ',topic:'build'}).value.company,'Example');});
 test('contact boundary rejects malformed, empty, excessive and header-injection inputs',()=>{
   for(const value of [null,[],42]) assert.equal(validateContact(value).ok,false);
-  for(const patch of [{message:''},{email:'not email'},{email:'a@b.test\r\nBcc:private@x.test'},{name:'a\nb'},{message:'x'.repeat(4001)},{message:'a\0b'},{language:'xx'},{email:7}]) assert.equal(validateContact({...valid,...patch}).ok,false);
+  for(const patch of [{message:''},{email:'not email'},{email:'a@b.test\r\nBcc:private@x.test'},{name:'a\nb'},{message:'x'.repeat(3001)},{message:'a\0b'},{language:'xx'},{email:7},{company:'x'.repeat(161)},{company:'a\nb'},{topic:'bad'}]) assert.equal(validateContact({...valid,...patch}).ok,false);
 });
 function setup(overrides={}){
   const calls=[];

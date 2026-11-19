@@ -278,9 +278,9 @@ dialog dd{font-size:14px}}
 .service-action .arrow{width:17px;height:17px}
 .monolith .about .section-label h2{font-size:clamp(34px,3.4cqw,51px)}
 .monolith .contact,.monolith .site-footer{background:#9e482f;--paper:#9e482f;--muted:#f8ded0;--line:#d99a7e}
-.preview-notice{border:1px solid #d99a7e;padding:16px 18px}
-.preview-notice>.eyebrow{font-size:9px}
-.preview-notice>p{font-size:13px;line-height:1.65;margin-top:5px;max-width:450px}
+.contact-notice{border:1px solid #d99a7e;padding:16px 18px}
+.contact-notice>.eyebrow{font-size:9px}
+.contact-notice>p{font-size:13px;line-height:1.65;margin-top:5px;max-width:450px}
 .contact .form-note{font-family:Studio,Arial,sans-serif;font-size:12px;line-height:1.6}
 .field{font-size:14px}
 .field input,.field textarea,.field select{font-size:16px;min-height:52px}
@@ -328,8 +328,8 @@ dialog dd{font-size:16px;line-height:1.7}
 .contact-heading>p{font-size:16px}
 .contact form{gap:22px}
 .form-actions{justify-content:space-between}
-.preview-notice{padding:15px}
-.preview-notice>p{font-size:13px}
+.contact-notice{padding:15px}
+.contact-notice>p{font-size:13px}
 .monolith .contact .button{min-height:54px;padding:15px 18px}
 .refinement-footer{display:block;padding-bottom:24px}
 .refinement-footer>a{font-size:12px;justify-content:space-between;border-bottom:1px solid var(--line);margin-top:8px}
@@ -448,9 +448,9 @@ body{background:#e9e7df}
 .monolith .contact h2{font-size:clamp(44px,5.2cqw,76px)}
 .contact-heading>p{font-size:17px}
 .contact-mark{display:none}
-.preview-notice{border:0;border-radius:18px;background:#ffffff12;padding:18px 20px}
-.preview-notice .eyebrow{font:11px Studio,sans-serif}
-.preview-notice>p{font-size:14px;line-height:1.7}
+.contact-notice{border:0;border-radius:18px;background:#ffffff12;padding:18px 20px}
+.contact-notice .eyebrow{font:11px Studio,sans-serif}
+.contact-notice>p{font-size:14px;line-height:1.7}
 .field>span:first-child{margin-bottom:10px}
 .field input,.field textarea{background:#fff5eb14;border:0;border-radius:14px;padding:14px 16px}
 .field input{height:54px}
@@ -532,8 +532,8 @@ dialog .dialog-close:hover{background:#dfe3d5}
 .monolith .contact{margin:0 3%;padding:45px 5% 20px;border-radius:28px 28px 0 0;gap:32px}
 .monolith .contact h2{font-size:clamp(40px,10.8cqw,55px);line-height:1.08}
 .contact-heading>p{font-size:16px}
-.preview-notice{padding:16px}
-.preview-notice>p{font-size:13px}
+.contact-notice{padding:16px}
+.contact-notice>p{font-size:13px}
 .field{font-size:13px}
 .field input,.field textarea,.field select{font-size:16px}
 .monolith .contact .button{min-height:52px;padding:15px 19px;font-size:13px;gap:15px}
@@ -643,8 +643,8 @@ dialog .dialog-close:hover{background:#dfe3d5}
 .contact-expectation .origin-dot{background:#f4cfb5;box-shadow:0 0 0 6px #fff3e80d;margin-top:7px;width:7px;height:7px}
 .contact-expectation p{font-size:13px;line-height:1.6}
 .contact-expectation p>span{display:block;margin-top:5px;font-size:12px}
-.contact .preview-notice{padding:0 0 4px;background:none;border-radius:0;max-width:480px}
-.contact .preview-notice>p{color:#fff3e8;font-size:14px;line-height:1.65}
+.contact .contact-notice{padding:0 0 4px;background:none;border-radius:0;max-width:480px}
+.contact .contact-notice>p{color:#fff3e8;font-size:14px;line-height:1.65}
 .contact .form-note{max-width:none;color:#fff3e8}
 .contact form{gap:21px 20px;min-width:0}
 .field{min-width:0}
@@ -681,7 +681,7 @@ dialog .copy-status:empty{display:none}
 .copy-fallback[hidden]{display:none}
 .copy-fallback textarea{width:100%;font:14px/1.6 Studio,Arial,sans-serif;padding:12px;margin-top:8px;resize:vertical;border:1px solid #8b9d86;border-radius:10px;background:#fffaf2;color:#273b30}
 @container site (max-width:1000px){.monolith .contact{grid-template-columns:1fr;gap:32px}.contact-heading>p{max-width:600px}.contact-expectation{margin-top:24px;max-width:none}.contact-expectation p>span{display:inline;margin-left:8px}.contact form{grid-template-columns:1fr 1fr}.monolith .contact h2{max-width:660px}.contact .field-hint{max-width:570px}}
-@container site (max-width:680px){.monolith .hero{padding-top:18px}.monolith .hero-heading .eyebrow{margin-bottom:17px}.monolith .hero-composition{margin-top:21px}.monolith .hero-lead{line-height:1.7}.monolith .hero-actions{display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap}.monolith .hero-actions .button{margin-top:16px;min-height:50px;padding:13px 20px;min-width:140px}.monolith .hero-actions .secondary-link{margin-top:16px;min-height:44px}.monolith .hero-composition .drawing{margin-top:18px;max-width:290px}.monolith .layer-study{padding-bottom:12px}.monolith .services{padding-top:40px;padding-bottom:56px}.monolith .service-flow{gap:36px}.monolith .service-visible .service-title{margin-bottom:14px}.monolith .service-visible .service-content{gap:17px}.monolith .process{padding-top:54px;padding-bottom:54px}.monolith .contact{padding:40px 5% 14px;gap:27px}.monolith .contact h2{font-size:clamp(36px,10cqw,52px)}.contact-heading>p{margin-top:18px;line-height:1.7}.contact-expectation{margin-top:22px}.contact-expectation p>span{display:block;margin:4px 0 0}.contact form{grid-template-columns:1fr;gap:20px}.contact .preview-notice>p{font-size:13px}.field-hint{font-size:13px}.contact .form-actions{align-items:stretch;flex-direction:column;gap:5px}.contact .form-actions .button{width:100%;justify-content:space-between;min-height:54px;font-size:14px;padding:15px 21px}.contact .form-actions .text-button{align-self:center;padding:10px 18px}.monolith .site-footer{padding-top:12px}.reset-row{justify-content:center;flex-wrap:wrap;gap:0 8px}.mobile-contact>span{max-width:46%}}
+@container site (max-width:680px){.monolith .hero{padding-top:18px}.monolith .hero-heading .eyebrow{margin-bottom:17px}.monolith .hero-composition{margin-top:21px}.monolith .hero-lead{line-height:1.7}.monolith .hero-actions{display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap}.monolith .hero-actions .button{margin-top:16px;min-height:50px;padding:13px 20px;min-width:140px}.monolith .hero-actions .secondary-link{margin-top:16px;min-height:44px}.monolith .hero-composition .drawing{margin-top:18px;max-width:290px}.monolith .layer-study{padding-bottom:12px}.monolith .services{padding-top:40px;padding-bottom:56px}.monolith .service-flow{gap:36px}.monolith .service-visible .service-title{margin-bottom:14px}.monolith .service-visible .service-content{gap:17px}.monolith .process{padding-top:54px;padding-bottom:54px}.monolith .contact{padding:40px 5% 14px;gap:27px}.monolith .contact h2{font-size:clamp(36px,10cqw,52px)}.contact-heading>p{margin-top:18px;line-height:1.7}.contact-expectation{margin-top:22px}.contact-expectation p>span{display:block;margin:4px 0 0}.contact form{grid-template-columns:1fr;gap:20px}.contact .contact-notice>p{font-size:13px}.field-hint{font-size:13px}.contact .form-actions{align-items:stretch;flex-direction:column;gap:5px}.contact .form-actions .button{width:100%;justify-content:space-between;min-height:54px;font-size:14px;padding:15px 21px}.contact .form-actions .text-button{align-self:center;padding:10px 18px}.monolith .site-footer{padding-top:12px}.reset-row{justify-content:center;flex-wrap:wrap;gap:0 8px}.mobile-contact>span{max-width:46%}}
 @media(max-width:600px){dialog{padding:32px 20px 23px;max-height:calc(100dvh - 24px);width:calc(100% - 24px);border-radius:22px}dialog h2{font-size:30px;margin-top:20px}dialog dl{padding:17px 16px;margin:22px 0}dialog dd{font-size:15px}.review-actions{flex-direction:column;align-items:stretch;gap:6px}.review-actions .button{justify-content:space-between;font-size:14px}.review-actions .text-button{align-self:center}.review-bar>a{min-height:44px;display:flex;align-items:center}}
 @media(prefers-reduced-motion:reduce){.contact .field input,.contact .field textarea,.contact .field select{transition:none}}
 
@@ -695,11 +695,11 @@ dialog .copy-status:empty{display:none}
 .contact .optional-details summary::after{content:'+';font-size:22px;line-height:1;width:24px;flex:none;text-align:center}
 .contact .optional-details[open] summary::after{content:'−'}
 .optional-fields{display:grid;grid-template-columns:1fr;gap:19px;padding:13px 0 2px}
-.contact .preview-notice>p{font-size:13px;max-width:470px}
+.contact .contact-notice>p{font-size:13px;max-width:470px}
 .contact .field-hint{font-size:12px;line-height:1.6}
 .contact .optional-details summary:hover{color:#fff}
 @container site (max-width:1000px){.monolith .service-visible .service-title{min-height:0;font-size:31px}}
-@container site (max-width:680px){.monolith .hero{padding-top:10px}.monolith .hero h1{font-size:clamp(35px,9.7cqw,54px)}.monolith .hero-heading .eyebrow{margin-bottom:14px}.monolith .hero-composition{margin-top:18px}.monolith .hero-lead{line-height:1.65}.monolith .hero-aside{padding-bottom:0}.monolith .hero-actions{column-gap:18px;row-gap:0}.monolith .hero-actions .button,.monolith .hero-actions .secondary-link{margin-top:12px}.monolith .hero-composition .drawing{max-width:155px;margin-top:12px;margin-bottom:0}.monolith .drawing .architecture-art{max-height:140px}.monolith .drawing-footer{display:none}.monolith .services{padding-top:32px;padding-bottom:48px;gap:25px}.monolith .services .section-label h2{font-size:clamp(32px,8.7cqw,43px)}.monolith .service-flow{gap:33px}.monolith .service-visible .service-title{font-size:clamp(27px,7.2cqw,34px);min-height:0}.monolith .service-visible .service-content{gap:15px}.monolith .service-visible .service-description{font-size:16px;line-height:1.7}.monolith .service-visible .service-detail ul{margin-top:10px}.contact .preview-notice{padding-bottom:0}.contact .optional-details summary{font-size:13px}.contact .field-hint{font-size:13px}}
+@container site (max-width:680px){.monolith .hero{padding-top:10px}.monolith .hero h1{font-size:clamp(35px,9.7cqw,54px)}.monolith .hero-heading .eyebrow{margin-bottom:14px}.monolith .hero-composition{margin-top:18px}.monolith .hero-lead{line-height:1.65}.monolith .hero-aside{padding-bottom:0}.monolith .hero-actions{column-gap:18px;row-gap:0}.monolith .hero-actions .button,.monolith .hero-actions .secondary-link{margin-top:12px}.monolith .hero-composition .drawing{max-width:155px;margin-top:12px;margin-bottom:0}.monolith .drawing .architecture-art{max-height:140px}.monolith .drawing-footer{display:none}.monolith .services{padding-top:32px;padding-bottom:48px;gap:25px}.monolith .services .section-label h2{font-size:clamp(32px,8.7cqw,43px)}.monolith .service-flow{gap:33px}.monolith .service-visible .service-title{font-size:clamp(27px,7.2cqw,34px);min-height:0}.monolith .service-visible .service-content{gap:15px}.monolith .service-visible .service-description{font-size:16px;line-height:1.7}.monolith .service-visible .service-detail ul{margin-top:10px}.contact .contact-notice{padding-bottom:0}.contact .optional-details summary{font-size:13px}.contact .field-hint{font-size:13px}}
 
 /* Keep language selection with the site navigation at every screen size. */
 .header-controls{display:flex;align-items:center;gap:12px;flex:none;order:2}
@@ -713,3 +713,7 @@ dialog .copy-status:empty{display:none}
   .header-controls{width:100%;justify-content:space-between;order:1}
   .site-header nav{order:2}
 }
+
+.contact-trap{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+button:disabled{cursor:wait;opacity:.65}
+.send-feedback{margin:0;min-height:1.5em}
