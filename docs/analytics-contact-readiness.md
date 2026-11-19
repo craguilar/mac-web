@@ -11,7 +11,7 @@ Al 19 de noviembre de 2026, el contacto está desplegado con Amplify Gen 2 y SES
 | GA4 | Propiedad de Carlos, ID real y dominios de producción confirmados | Etiqueta solo después de consentimiento explícito y solo en producción |
 | Contacto | Despliegue y recepción real confirmados; falta comprobar Reply-To, responsable y plazo de respuesta | Mantener entrega comprobada y éxito solo tras respuesta del servidor; completar validación móvil |
 | Privacidad | Identidad y contacto del responsable, finalidades, proveedores, conservación y mecanismo de derechos confirmados | Aviso revisado y enlazado en español e inglés |
-| Infraestructura | Backend y controles contra abuso desplegados; alarmas de API activas, suscripción SNS confirmada y notificación TEST aceptada por SNS | Confirmar recepción de la prueba; completar monitoreo de disponibilidad, rebotes y gasto |
+| Infraestructura | Backend y controles contra abuso desplegados; alarmas de API activas, suscripción SNS confirmada y recepción de la notificación TEST confirmada por el propietario | Probar el disparo controlado de alarmas; completar monitoreo de disponibilidad, rebotes y gasto |
 
 No se inventarán correo, razón social, domicilio, periodos de conservación ni texto legal. No se habilitarán Ads, remarketing o datos proporcionados por usuarios por defecto.
 

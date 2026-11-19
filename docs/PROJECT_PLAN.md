@@ -40,7 +40,7 @@ Evaluación del 19 de noviembre de 2026, basada en `main` en `b1561b8`, el job 1
 | E. Seguridad | HTTPS funciona. La respuesta HTML del 19 de noviembre no incluye CSP, HSTS, X-Content-Type-Options ni Referrer-Policy. | Configurar y probar las cabeceras, CSP y caché con Turnstile y la API reales; verificar respuestas para rutas inexistentes. |
 | E. Dependencias | Dependabot reporta 10 alertas abiertas en `package-lock.json`: 2 críticas, 5 altas y 3 medias; todas clasificadas como dependencias transitivas de desarrollo. Afectan Handlebars, GraphQL Tools, Immutable, Lodash y Minimatch. | Priorizar revisión de exposición y actualización de la cadena de herramientas. Validar instalación, tipos, pruebas, síntesis y build. La clasificación de desarrollo no sustituye una revisión de explotabilidad; esta auditoría no hizo esa revisión. |
 | E. Interfaz y accesibilidad | Revisión de código: formulario de una columna en móvil, campos de 16 px y Turnstile compacto. La herramienta de navegador falló antes de abrir la página; no hay aprobación visual móvil en esta revisión. | Probar Safari/iOS, Chrome/Android, teclado, lector de pantalla, zoom, errores y rendimiento; documentar tamaños y resultados. |
-| F. Operación y recuperación | Alarmas de API desplegadas y en `OK`: al menos 3 respuestas 5xx en 5 minutos y más de 60 peticiones en 15 minutos. AWS confirma la suscripción SNS al mismo buzón de contacto; SNS aceptó una notificación marcada TEST. El runbook describe la reversión por PR. | Confirmar recepción de la alerta de prueba; la aceptación de SNS no acredita llegada al buzón. Añadir monitoreo de disponibilidad, rebotes/quejas y gasto; definir responsables y ensayar reversión. Las alarmas de API no acreditan entrega final de SES. |
+| F. Operación y recuperación | Alarmas de API desplegadas y en `OK`: al menos 3 respuestas 5xx en 5 minutos y más de 60 peticiones en 15 minutos. Suscripción SNS al mismo buzón de contacto confirmada; el propietario confirmó recepción de la notificación TEST. El runbook describe la reversión por PR. | Probar de forma controlada el disparo de alarmas: la prueba SNS verificó el canal de correo, no los umbrales. Añadir monitoreo de disponibilidad, rebotes/quejas y gasto; definir responsables y ensayar reversión. Las alarmas de API no acreditan entrega final de SES. |
 | G. Campaña | Etapa posterior al lanzamiento funcional; sin evidencia de ejecución en esta revisión. | Confirmar objetivo, oferta, cuenta y presupuesto; preparar campaña y conversiones después de verificar contacto y consentimiento. |
 
 ### Selección de idioma actual
@@ -51,7 +51,7 @@ La detección del navegador sería una mejora adicional: el plan original exige 
 
 ### Prioridad de trabajo
 
-1. Confirmar recepción de la alerta de prueba; comprobar Reply-To y el formulario en móvil. Publicar el aviso de privacidad con datos aprobados.
+1. Comprobar Reply-To y el formulario en móvil. Publicar el aviso de privacidad con datos aprobados; el canal de correo para alertas ya está verificado.
 2. Resolver las alertas de dependencias, priorizando las críticas/altas de la cadena de herramientas. Añadir cabeceras de seguridad compatibles con Turnstile y el endpoint; completar accesibilidad y rendimiento.
 3. Resolver idioma inicial y SEO bilingüe, incluida la variante canónica del dominio.
 4. Completar monitoreo de disponibilidad, rebotes/quejas, presupuesto y recuperación. Revisar por separado la actualización mayor de TypeScript del [PR #11](https://github.com/craguilar/mac-web/pull/11); sigue pendiente de fusión al 19 de noviembre.
