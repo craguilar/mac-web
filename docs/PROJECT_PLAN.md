@@ -7,7 +7,7 @@ El sitio corporativo de MAC Tecnología se dirige a empresas del sur de México 
 | Decisión | Requisito |
 | --- | --- |
 | Diseño y contenido | Conservar Monolito suave, sus colores y fluidez en móvil, la identidad chiapaneca discreta y el tono cercano y práctico. Mantener «Buenas ideas. Tecnología que las hace realidad.», el texto aprobado de Nosotros y la oferta de servicios vigente. Toda mención de clientes, testimonios, resultados o certificaciones requiere evidencia aprobada. |
-| Arquitectura | Servir HTML, CSS y JavaScript estáticos desde el repositorio público `craguilar/mac-web`. Mantener la navegación por anclas y `?lang=es` / `?lang=en`. El alcance excluye Flowly y una migración a React o Next.js. El envío del formulario requiere un servicio de contacto independiente del alojamiento estático. |
+| Arquitectura | Escribir la lógica en TypeScript estricto y compilarla con esbuild para servir HTML, CSS y JavaScript estáticos desde el repositorio público `craguilar/mac-web`. Mantener la navegación por anclas y `?lang=es` / `?lang=en`. El alcance excluye Flowly y una migración a React o Next.js. El envío del formulario requiere un servicio de contacto independiente del alojamiento estático. |
 | Alojamiento | **AWS Amplify Hosting** es la plataforma elegida. Se evaluaron Cloudflare y el alojamiento directo en S3. El único entorno alojado es producción, desde `main`. |
 | Dominio | El dominio elegido es `mactecnologia.com.mx`. La puesta en producción depende de confirmar su disponibilidad o titularidad, el control del DNS y la variante canónica (raíz o `www`). |
 
@@ -23,7 +23,7 @@ Estado de referencia del 16 de noviembre de 2026. Los resultados de pruebas corr
 
 Los dos PR seguían abiertos y sin fusionar en esa revisión. Cada uno reportó 17 pruebas y una compilación local correctas. La validación local conjunta completó 25 pruebas y compiló el sitio correctamente. El [CI de #2](https://github.com/craguilar/mac-web/actions/runs/43752475117) pasó en `df16ffc`.
 
-Actualización del 18 de noviembre de 2026: esos PR ya están integrados. Amplify despliega directamente desde GitHub, con builds automáticos de `main`, pruebas/build propios y vistas previas desactivadas. El job 2 terminó en `SUCCEED` para el commit `3bc6a76c3ff370ce6ac20877aa5a02dad706f030`. La asociación de `mactecnologia.com.mx` está en `AVAILABLE` y la raíz responde HTTP 200 mediante HTTPS. La publicación ya está verificada; las funciones de contacto y analítica siguen pendientes.
+Actualización del 18 de noviembre de 2026: esos PR ya están integrados. Amplify despliega directamente desde GitHub, con builds automáticos de `main`, pruebas/build propios y vistas previas desactivadas. El job 2 terminó en `SUCCEED` para el commit `3bc6a76c3ff370ce6ac20877aa5a02dad706f030`. La asociación de `mactecnologia.com.mx` está en `AVAILABLE` y la raíz responde HTTP 200 mediante HTTPS. La publicación ya está verificada; la recepción real del contacto y la analítica siguen pendientes de verificación/activación.
 
 ## Estado frente al plan original
 
@@ -33,7 +33,7 @@ Evaluación del 18 de noviembre de 2026, basada en el código de `main`, los job
 | --- | --- | --- |
 | A. Integración | Los módulos de #1 y #2 están integrados; pruebas y build funcionan. | Conectar las funciones preparadas a la página cuando se implementen los servicios reales. |
 | B. CI y alojamiento | CI valida PR; Amplify publica `main`. El dominio y HTTPS funcionan. | Exigir **Test and build (Node 24)** antes de fusionar: el ruleset actual exige una revisión, pero no contiene un check de estado obligatorio. |
-| C. Contacto | El formulario valida y permite revisar/copiar el mensaje en memoria. **No envía correo ni registra consultas.** | Confirmar destinatario y proveedor; acordar los campos; implementar endpoint, límites y protección contra abuso, estados de envío y pruebas de recepción. El formulario usa `problem` y nombre obligatorio; el módulo preparado espera `message` y nombre opcional. Resolver esa diferencia antes de conectarlos. |
+| C. Contacto | Implementado envío con Amplify Gen 2, API HTTP, Lambda y SES; destinatario confirmado en configuración AWS. Contrato de cliente/servidor unificado, con estados ES/EN y pruebas simuladas. | Completar bootstrap de CDK, desplegar el cambio y verificar recepción/Reply-To con autorización; seguimiento de rebotes y aviso completo pendientes. No considerar las pruebas simuladas evidencia de entrega real. |
 | C. Privacidad | No hay aviso de privacidad publicado en el sitio. | Preparar y revisar el aviso ES/EN con los datos reales del responsable, finalidad, proveedores y tratamiento antes de habilitar la recepción. |
 | D. GA4 y consentimiento | Existen una política y un controlador probados, pero están desconectados. No se carga GA4. | Confirmar propiedad/ID y hosts autorizados; integrar aceptar, rechazar y retirar; verificar red y eventos. `generate_lead` requiere entrega real verificada y consentimiento. |
 | E. SEO | Hay título y descripción que cambian con JavaScript; el HTML inicial está en inglés. | Resolver metadatos por idioma para indexación y enlaces compartidos; añadir canonical, hreflang, sitemap, robots y una imagen social. Verificar la variante canónica y sus redirecciones. |
@@ -81,20 +81,21 @@ Validar los cambios en GitHub Actions y servir `dist/` localmente para la revisi
 
 ## C. Contacto y privacidad
 
-La implementación puede empezar con un servicio simulado. Para habilitar envíos reales deben estar confirmados el destinatario, el remitente, el canal, el responsable de atención y el plazo de respuesta. Elegir el servicio mínimo que cumpla el contrato. Un endpoint serverless con Amazon SES es una opción pendiente de decisión.
+Decisión: Amplify Gen 2 con una API HTTP, una función Lambda y Amazon SES. El destinatario se configura en la rama main de Amplify; remitente `web@mactecnologia.com.mx`, Reply-To del visitante. No añadir base de datos, autenticación ni autorespuestas. Confirmar responsable de atención y plazo de respuesta antes de publicitar el canal.
 
-| Campo | Formulario actual | Contrato propuesto en #1 |
-| --- | --- | --- |
-| Nombre | `name` obligatorio, hasta 160 caracteres | `name` opcional, hasta 100 |
-| Correo | `email` obligatorio, hasta 254 | `email` obligatorio, hasta 254 |
-| Mensaje | `problem` obligatorio, hasta 3000 | `message` obligatorio, hasta 4000 |
-| Empresa y tema | `company` y `topic` opcionales | El validador descarta ambos |
-| Idioma | Selección de la página | `language` obligatorio, `es` o `en` |
+| Campo | Contrato unificado |
+| --- | --- |
+| Nombre | `name` obligatorio, hasta 160 caracteres |
+| Correo | `email` obligatorio, hasta 254 |
+| Mensaje | `message` obligatorio, hasta 3000 |
+| Empresa | `company` opcional, hasta 160 |
+| Tema | `topic` opcional: `build`, `architecture`, `delivery` |
+| Idioma | `language` obligatorio: `es` o `en` |
 
-Antes de conectar el formulario, acordar qué campos se enviarán, cuáles serán obligatorios y sus límites. Alinear nombres, validación y textos de ambas interfaces. Ningún campo ofrecido para el envío debe descartarse silenciosamente.
+La [guía de despliegue](launch-runbook.md) detalla el endpoint, configuración, límites compartidos, fallos ambiguos y las verificaciones de producción pendientes. Mantener el aviso completo de privacidad como requisito; el texto breve de finalidad/proveedores no lo sustituye.
 
 - **Servidor.** Recibir por HTTPS, reutilizar la validación de #1 y aplicar límites de longitud y de tamaño de petición. Validar el origen permitido, bloquear la inyección de cabeceras, limitar la frecuencia e incorporar protección contra abuso además de CORS. Custodiar los secretos en el servidor. Excluir cuerpos de mensajes y datos personales de registros y analítica.
-- **Interfaz.** Mantener el rótulo de vista previa hasta habilitar el servicio. Mostrar estados accesibles en ES/EN para errores de validación, envío en curso, límite de frecuencia, fallo temporal, tiempo de espera, reintento y éxito. Conservar el texto tras un fallo e impedir envíos duplicados. Mostrar éxito únicamente cuando el servicio de entrega acepte el envío.
+- **Interfaz.** El build local sin backend debe indicar que el envío no está disponible. Mostrar estados accesibles en ES/EN para errores de validación, envío en curso, límite de frecuencia, fallo temporal, tiempo de espera, reintento y éxito. Conservar el texto tras un fallo e impedir envíos duplicados. Mostrar éxito únicamente cuando el servicio de entrega acepte el envío.
 - **Privacidad y correo.** Publicar un aviso ES/EN revisado que identifique al responsable, las finalidades, los proveedores, la conservación y el mecanismo para ejercer derechos. Estos datos requieren confirmación. Si se elige SES, comprobar restricciones de sandbox, remitente y dominio verificados, SPF/DKIM/DMARC, rebotes y permisos mínimos.
 
 **Aceptación.** Con datos sintéticos, probar campos inválidos, límites, fallo de red, reintento y doble clic. Para un envío válido, comprobar por separado la aceptación por el servicio y la recepción en el buzón autorizado. Verificar el aviso y los estados del formulario en ambos idiomas.

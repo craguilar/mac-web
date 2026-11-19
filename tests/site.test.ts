@@ -1,47 +1,47 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
-const crypto = require('node:crypto');
-const root = path.resolve(__dirname, '..');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import {consultingContent as content,consultingExtra} from '../src/content.ts';
+import crypto from 'node:crypto';
+const root = path.resolve(import.meta.dirname, '..');
 const pub = path.join(root, 'public');
-const read = p => fs.readFileSync(path.join(pub, p), 'utf8');
+const read = (p:string) => fs.readFileSync(path.join(pub, p), 'utf8');
 const html = read('index.html');
-const app = read('assets/app.js');
+const app = fs.readFileSync(path.join(root,'src/app.ts'),'utf8');
+const dist = path.join(root,'dist');
 const css = read('assets/styles.css');
-const context = {window: {}};
-vm.runInNewContext(read('assets/content.js'), context);
-const content = context.window.consultingContent;
 test('both languages retain brand, service structure and approved About copy', () => {
-  for (const lang of ['es', 'en']) {
+  for (const lang of ['es', 'en'] as const) {
     assert.equal(content[lang].company, 'MAC Tecnología');
     assert.equal(content[lang].st.length, 3);
     assert.equal(content[lang].aboutParagraphs.length, 3);
-    assert.equal(context.window.consultingExtra[lang].deliverables.length, 3);
+    assert.equal(consultingExtra[lang].deliverables.length, 3);
   }
   assert.equal(content.es.aboutParagraphs.join(' '), 'Somos una pequeña empresa 100% chiapaneca apasionada por crear tecnología útil. Nos gusta conocer de cerca a las personas y los negocios con los que trabajamos, entender sus retos y encontrar soluciones que realmente les sirvan. Combinamos nuestra experiencia en proyectos de distintas escalas y con equipos internacionales con una forma de trabajar cercana, clara y práctica.');
   assert.match(app, /Buenas ideas\./);
   assert.match(app, /Tecnología que las hace realidad\./);
 });
 test('HTML and CSS resource links are local, portable and present', () => {
-  const refs = [...html.matchAll(/(?:src|href)="([^"#]+)"/g)].map(m => [pub, m[1]]);
-  refs.push(...[...css.matchAll(/url\(['"]?([^)'"\s]+)['"]?\)/g)].map(m => [path.join(pub, 'assets'), m[1]]));
+  const refs = [...html.matchAll(/(?:src|href)="([^"#]+)"/g)].map(m => [dist, m[1]]);
+  refs.push(...[...css.matchAll(/url\(['"]?([^)'"\s]+)['"]?\)/g)].map(m => [path.join(dist, 'assets'), m[1]]));
   for (const [base, ref] of refs) {
     if (ref.startsWith('data:')) continue;
     assert.ok(ref.startsWith('./'), ref);
     assert.ok(fs.existsSync(path.resolve(base, ref)), ref);
   }
 });
-test('form remains a local preview without network calls or persistent storage', () => {
-  assert.match(app, /e\.preventDefault\(\)/);
-  assert.match(app, /dd\.textContent=/);
-  assert.match(app, /dialog\.showModal\(\)/);
-  assert.doesNotMatch(app, /\b(?:fetch|XMLHttpRequest|WebSocket|localStorage|sessionStorage|indexedDB)\b/);
-  assert.doesNotMatch(app, /https?:\/\//);
+test('contact loads shared validation and delivery without persistent browser storage', () => {
+  assert.match(html, /assets\/app\.js/);
+  assert.match(app, /await sendContact\(/);
+  const bundle=fs.readFileSync(path.join(dist,'assets/app.js'),'utf8');
+  assert.match(bundle, /function validateContact\(/);
+  assert.match(bundle, /function sendContact\(/);
+  assert.doesNotMatch(app, /\b(?:localStorage|sessionStorage|indexedDB)\b/);
 });
+
 test('export has no gallery links, private site IDs or unrelated variants', () => {
-  for (const value of [html, app, css, read('assets/content.js')]) {
+  for (const value of [html, app, css, JSON.stringify(content)]) {
     assert.doesNotMatch(value, /appgprj_|appgver_|libfile_|\/workspace\/|chatgpt\.site|chatgpt-team|structure-variations|monolito-refined|pavilion|blueprint/i);
   }
 });
@@ -61,27 +61,24 @@ test('licensed font bytes match the audited asset checksums', () => {
 test('streamlined design has visible services and optional contact details', () => {
   assert.doesNotMatch(app, /layerStudy|data-layer-button/);
   assert.match(app, /class="optional-details full"/);
-  assert.match(app, /if\(!value\)return/);
-  assert.match(app, /if\(form\.elements\.topic\.value\)/);
   assert.match(css, /max-width:155px/);
   assert.equal(content.es.st[0], 'Crear o mejorar software');
   assert.equal(content.en.st[2], 'Improve testing and releases');
-  assert.equal(context.window.consultingExtra.es.scope, 'Posibles alcances');
+  assert.equal(consultingExtra.es.scope, 'Posibles alcances');
 });
 
-test('message review offers accessible copy, fallback and reversible clearing', () => {
-  assert.match(app, /aria-describedby="review-note"/);
-  assert.match(app, /navigator\.clipboard\.writeText\(message\)/);
-  assert.match(app, /fallback\.querySelector\('textarea'\)\.value=message/);
+test('contact has accessible status and reversible clearing', () => {
+  assert.match(app, /class="send-feedback full" role="status"/);
   assert.match(app, /clearSnapshot=values/);
   assert.match(app, /undo\.addEventListener\('click'/);
-  assert.match(app, /form\.querySelector\('\[type=submit\]'\)\.focus/);
   assert.match(app, /maxlength="3000"/);
+  assert.equal(content.es.submit, 'Enviar mensaje');
+  assert.equal(content.en.submit, 'Send message');
 });
 
 test('contact body, input and placeholder colors have at least 4.5:1 contrast', () => {
-  function luminance(hex) {
-    const rgb = hex.match(/../g).map(v => parseInt(v, 16) / 255)
+  function luminance(hex:string) {
+    const rgb = (hex.match(/../g) ?? []).map(v => parseInt(v, 16) / 255)
       .map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
     return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
   }

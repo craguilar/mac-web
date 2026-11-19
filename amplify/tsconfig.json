@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "include": [
+    "**/*.ts",
+    "../src/contact-validation.ts",
+    "../src/http.ts"
+  ],
+  "exclude": [
+    "../node_modules",
+    "../dist",
+    "../.amplify"
+  ]
+}

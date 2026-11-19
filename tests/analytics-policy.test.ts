@@ -1,7 +1,7 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const {activationAllowed, eventPayload} = require('../public/assets/analytics-policy.js');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {activationAllowed, eventPayload} from '../src/analytics-policy.ts';
 const config = {enabled:true, measurementId:'G-TEST123', productionHosts:['example.test']};
 const location = {protocol:'https:',hostname:'example.test'};
 test('activation requires every explicit production/consent gate', () => {
@@ -20,7 +20,7 @@ test('events are allowlisted; contact preview is not a lead', () => {
   assert.deepEqual(eventPayload('service_view', {service:'software',language:'en'}),{name:'service_view',parameters:{service:'software',language:'en'}});
 });
 test('policy is inert and not enabled on the website', () => {
-  const code=fs.readFileSync(require.resolve('../public/assets/analytics-policy.js'),'utf8');
+  const code=fs.readFileSync(new URL('../src/analytics-policy.ts',import.meta.url),'utf8');
   assert.doesNotMatch(code,/\b(?:fetch|XMLHttpRequest|localStorage|sessionStorage|gtag)\b/);
-  assert.doesNotMatch(fs.readFileSync(require.resolve('../public/index.html'),'utf8'),/analytics-policy|googletagmanager|google-analytics/);
+  assert.doesNotMatch(fs.readFileSync(new URL('../dist/assets/app.js',import.meta.url),'utf8'),/analytics-policy|googletagmanager|google-analytics|measurementId/);
 });

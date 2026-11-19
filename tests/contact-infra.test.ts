@@ -1,0 +1,25 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {App,Stack} from 'aws-cdk-lib';
+import {Template,Match} from 'aws-cdk-lib/assertions';
+import {Function,Runtime,Code} from 'aws-cdk-lib/aws-lambda';
+import {configureContactApi} from '../amplify/contact-api.ts';
+test('contact infrastructure limits route, origins, traffic and SES delivery permissions',()=>{
+ const stack=new Stack(new App(),'ContactTest',{env:{account:'123456789012',region:'us-east-2'}});
+ const fn=new Function(stack,'Handler',{runtime:Runtime.NODEJS_22_X,handler:'index.handler',code:Code.fromInline('exports.handler=async()=>{}')});
+ configureContactApi(stack,fn,'owner@example.test','testapp','testapi123');
+ const template=Template.fromStack(stack);
+ template.resourceCountIs('AWS::ApiGatewayV2::Route',1);
+ template.resourceCountIs('AWS::CloudWatch::Alarm',2);
+ template.resourceCountIs('AWS::SNS::Subscription',0);
+ template.hasResourceProperties('AWS::SNS::TopicPolicy',{PolicyDocument:{Statement:Match.arrayWith([Match.objectLike({Action:'sns:Publish',Principal:{Service:'cloudwatch.amazonaws.com'},Condition:Match.objectLike({StringEquals:{'aws:SourceAccount':'123456789012'}})})])}});
+ template.hasResourceProperties('AWS::SNS::Topic',{TopicName:'mac-web-testapp-contact-alerts'});
+ template.hasResourceProperties('AWS::CloudWatch::Alarm',{AlarmName:'mac-web-testapp-contact-traffic',MetricName:'Count',Period:900,Statistic:'Sum',Threshold:60,TreatMissingData:'notBreaching',AlarmActions:Match.anyValue()});
+ template.hasResourceProperties('AWS::CloudWatch::Alarm',{AlarmName:'mac-web-testapp-contact-failures',MetricName:'5xx',Period:300,Statistic:'Sum',Threshold:3,TreatMissingData:'notBreaching',AlarmActions:Match.anyValue()});
+ template.hasResourceProperties('AWS::ApiGatewayV2::Route',{RouteKey:'POST /contact',AuthorizationType:'NONE'});
+ template.resourceCountIs('AWS::ApiGatewayV2::Api',0);
+ template.hasResourceProperties('AWS::ApiGatewayV2::Route',{ApiId:'testapi123'});
+ template.resourceCountIs('AWS::ApiGatewayV2::Stage',0);
+ template.hasResourceProperties('AWS::IAM::Policy',{PolicyDocument:{Statement:Match.arrayWith([Match.objectLike({Action:'ses:SendEmail',Effect:'Allow',Resource:{'Fn::Join':['',['arn:',{Ref:'AWS::Partition'},':ses:us-east-2:123456789012:identity/mactecnologia.com.mx']]},Condition:{StringEquals:{'ses:FromAddress':'web@mactecnologia.com.mx'},'ForAllValues:StringEquals':{'ses:Recipients':['owner@example.test']}}})])}});
+ assert.throws(()=>configureContactApi(stack,fn,'','testapp','testapi123'),/CONTACT_EMAIL/);
+});
