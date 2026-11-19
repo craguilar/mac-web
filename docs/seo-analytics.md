@@ -6,6 +6,7 @@
 - El build genera contenido completo, títulos/descripciones, canonical, alternates ES/EN/x-default y metadatos sociales antes de ejecutar JavaScript. El selector conserva el borrador mientras cambia idioma y URL.
 - `robots.txt` anuncia `sitemap.xml`, que contiene las dos páginas. Las imágenes sociales son PNG de 1200 × 630. Los controles del formulario se habilitan al iniciar la aplicación; sin JavaScript no se envían datos por GET.
 - `infra/hosting-redirects.json` normaliza `www`, enlaces antiguos `?lang=…`, `/es/` e índices explícitos. Las rutas inexistentes deben devolver HTTP 404, no una copia del inicio con HTTP 200.
+- El fallback usa `404-200` (**404 rewrite**) hacia el archivo real `/404.html`: la prueba HTTP en Amplify confirmó que conserva el estado 404 sin cambiar la URL. El tipo `404` (**404 redirect**) devolvía 302 hacia ese archivo y terminaba en 200. Las pruebas locales de configuración no pueden demostrar este comportamiento del proveedor.
 
 Publicar primero el build que contiene `/en/index.html` y `/404.html`. Después, con el perfil AWS correcto:
 
@@ -16,7 +17,7 @@ node scripts/configure-hosting.ts --app-id <APP_ID> --account <ACCOUNT_ID> --app
 
 El primer comando solo revisa. El segundo comprueba cuenta, repositorio, reglas previas conocidas y HTML inglés publicado, guarda las reglas anteriores en `.amplify/hosting-rules-<fecha>.json`, aplica únicamente redirects y comprueba la lectura posterior. No modifica DNS, secretos ni variables de entorno. Para revertir, usar `aws amplify update-app --app-id <APP_ID> --custom-rules file://<BACKUP> --region us-east-2 --query app.customRules` con el backup revisado.
 
-Comprobar en producción raíz/inglés, recursos, `www/en/`, enlaces antiguos, sitemap, robots y una ruta aleatoria inexistente. Registrar status, Location y canonical; no basta con comprobar que responde la raíz. Enviar el sitemap en Google Search Console cuando el propietario conecte/verifique el dominio.
+Comprobar en producción raíz/inglés, recursos, `www/en/`, enlaces antiguos, sitemap, robots y una ruta aleatoria inexistente. Registrar status, Location y canonical; no basta con comprobar que responde la raíz. Si las nuevas reglas de query funcionan en el hostname de Amplify pero el dominio personalizado sigue sirviendo HTML almacenado, volver a desplegar para invalidar la caché y repetir las pruebas. Enviar el sitemap en Google Search Console cuando el propietario conecte/verifique el dominio.
 
 ## Crear y conectar GA4
 

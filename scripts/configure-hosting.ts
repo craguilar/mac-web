@@ -7,11 +7,14 @@ export interface HostingRule {source:string;target:string;status:string;}
 const root=path.resolve(import.meta.dirname,'..');
 export const hostingRules:HostingRule[]=JSON.parse(fs.readFileSync(path.join(root,'infra/hosting-redirects.json'),'utf8'));
 const previousRules=[{source:'/<*>',target:'/index.html',status:'404-200'}];
+// Amplify's 404 redirect produces a 302. Its 404 rewrite preserves the missing
+// resource's 404 status while serving our static error document.
+const initialSeoRules=hostingRules.map(rule=>rule.source==='/<*>'?{...rule,status:'404'}:rule);
 function normalize(rules:HostingRule[]){return rules.map(({source,target,status})=>({source,target,status}));}
 export function checkHostingPlan(repository:string,current:HostingRule[]){
  assert.equal(repository,'https://github.com/craguilar/mac-web','Unexpected repository; refusing hosting changes');
  const state=JSON.stringify(normalize(current));
- assert.ok(state===JSON.stringify(previousRules)||state===JSON.stringify(hostingRules),'Hosting rules changed; review them before applying');
+ assert.ok([previousRules,initialSeoRules,hostingRules].some(rules=>state===JSON.stringify(rules)),'Hosting rules changed; review them before applying');
  return {changed:state!==JSON.stringify(hostingRules),rules:hostingRules};
 }
 async function main(){

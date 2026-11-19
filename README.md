@@ -60,7 +60,7 @@ La versión actual incorpora textos de servicios más concretos, contenido visib
 - El formulario incluye una explicación ES/EN de finalidad y proveedores. Sigue pendiente el aviso completo de privacidad revisado, con datos reales del responsable y conservación.
 - Google Analytics está desactivado por defecto; con configuración explícita usa consentimiento básico. La elección puede guardarse localmente y las cookies propias de analítica aparecen solo al aceptar. No hay cuentas de visitantes ni autorespuestas.
 - Antes de habilitar producción: completar el bootstrap de CDK, verificar identidad SES, revisar privacidad y comprobar recepción y Reply-To con un envío autorizado. La [guía de despliegue](docs/launch-runbook.md) contiene los pasos y límites operativos.
-- Siguen pendientes cabeceras de seguridad, SEO y revisión completa de accesibilidad/dispositivos del plan original.
+- Siguen pendientes cabeceras de seguridad, verificación de Search Console/indexación y revisión completa de accesibilidad/dispositivos del plan original. El SEO técnico bilingüe ya está implementado.
 
 ## Licencias
 
