@@ -31,7 +31,7 @@ jobs:
           package-manager-cache: false
       - name: Install locked dependencies
         run: npm ci
-      - name: Check backend types
+      - name: Check TypeScript types
         run: npm run check
       - name: Run syntax and regression tests
         run: npm test
@@ -47,7 +47,7 @@ jobs:
           CDK_CONTEXT_JSON: '{"amplify-backend-name":"main","amplify-backend-namespace":"testapp","amplify-backend-type":"branch"}'
         run: |
           node --import tsx amplify/backend.ts
-          node scripts/check-synth-security.cjs .amplify/artifacts/security-synth
+          node scripts/check-synth-security.ts .amplify/artifacts/security-synth
       - name: Build static files and license notices
         run: npm run build
       - name: Validate CloudFormation template

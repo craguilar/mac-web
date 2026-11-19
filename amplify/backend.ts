@@ -1,7 +1,7 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { Stack, Aspects } from 'aws-cdk-lib';
-import { contact } from './functions/contact/resource';
-import { configureContactApi } from './contact-api';
+import { contact } from './functions/contact/resource.ts';
+import { configureContactApi } from './contact-api.ts';
 import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
 import { CfnRole } from 'aws-cdk-lib/aws-iam';
 

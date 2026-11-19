@@ -28,8 +28,8 @@ gh api user --jq .login
 Desde la raíz del checkout de este PR, revisar y aplicar:
 
 ```powershell
-node scripts/harden-github.cjs
-node scripts/harden-github.cjs --apply
+node scripts/harden-github.ts
+node scripts/harden-github.ts --apply
 git config --local user.email "6916098+craguilar@users.noreply.github.com"
 ```
 

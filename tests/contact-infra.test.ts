@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {App,Stack} from 'aws-cdk-lib';
 import {Template,Match} from 'aws-cdk-lib/assertions';
 import {Function,Runtime,Code} from 'aws-cdk-lib/aws-lambda';
-import {configureContactApi} from '../amplify/contact-api';
+import {configureContactApi} from '../amplify/contact-api.ts';
 test('contact infrastructure limits route, origins, traffic and SES delivery permissions',()=>{
  const stack=new Stack(new App(),'ContactTest',{env:{account:'123456789012',region:'us-east-2'}});
  const fn=new Function(stack,'Handler',{runtime:Runtime.NODEJS_22_X,handler:'index.handler',code:Code.fromInline('exports.handler=async()=>{}')});

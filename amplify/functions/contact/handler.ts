@@ -1,6 +1,6 @@
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
-import { createHandler } from './delivery.cjs';
-import { createVerifier } from './turnstile.cjs';
+import { createHandler } from './delivery.ts';
+import { createVerifier } from './turnstile.ts';
 
 // Avoid automatic retries: a lost response can mean SES accepted the message.
 const ses = new SESv2Client({ maxAttempts: 1 });

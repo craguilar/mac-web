@@ -8,13 +8,15 @@ La [especificación técnica](docs/PROJECT_PLAN.md) define los requisitos del si
 
 ## Ejecutar localmente
 
-La interfaz sigue siendo HTML, CSS y JavaScript estático. Se puede servir directamente; el envío local está desconectado y muestra un aviso si se intenta enviar.
+El código de la interfaz, el backend, los scripts y las pruebas de Node está escrito en TypeScript con comprobación estricta. esbuild compila la interfaz a JavaScript estático en `dist/`, junto con HTML y CSS, sin añadir un framework. El envío local está desconectado y muestra un aviso si se intenta enviar.
 
 ```sh
-python3 -m http.server 8000 --directory public
+npm ci
+npm run build
+python3 -m http.server 8000 --directory dist
 ```
 
-Abrir `http://localhost:8000/?lang=es` para español o `http://localhost:8000/?lang=en` para inglés. El selector de idioma también funciona dentro de la página. Los recursos usan rutas relativas, por lo que la carpeta `public/` puede servirse desde la raíz o un subdirectorio.
+Abrir `http://localhost:8000/?lang=es` para español o `http://localhost:8000/?lang=en` para inglés. El selector de idioma también funciona dentro de la página. Los recursos usan rutas relativas, por lo que la carpeta `dist/` puede servirse desde la raíz o un subdirectorio.
 
 ## Verificar
 
@@ -27,7 +29,7 @@ npm test
 npm run build
 ```
 
-`npm test` verifica interfaz, licencias, validación compartida, envío con SES simulado, fallos, timeout y la infraestructura sintetizada de la API. `npm run check` valida los tipos del backend. `npm run build` genera `dist/` sin desplegar; `npm run build -- --amplify` exige los outputs del backend y publica únicamente la URL del endpoint, no el resto de la configuración. Estas pruebas no sustituyen comprobar la recepción real en el buzón.
+`npm test` compila la interfaz y verifica interfaz, licencias, validación compartida, envío con SES simulado, fallos, timeout y la infraestructura sintetizada de la API. `npm run check` valida los tipos de `src/`, `amplify/`, `scripts/` y las pruebas de Node. Los scripts y las pruebas se ejecutan con `tsx`; el control de rama anterior a `npm ci` utiliza el soporte nativo de TypeScript de Node 24. `npm run build` genera `dist/` sin desplegar; `npm run build -- --amplify` exige los outputs del backend y publica únicamente la URL del endpoint y la clave pública de Turnstile. No incluye los outputs completos, secretos, destinatario, fuentes TypeScript ni mapas de código en `dist/`. Estas pruebas no sustituyen comprobar la recepción real en el buzón.
 
 ## Diseño aprobado
 
@@ -36,14 +38,17 @@ La versión actual incorpora textos de servicios más concretos, contenido visib
 ## Estructura
 
 - `public/index.html`: documento, metadatos y carga de recursos.
-- `public/assets/content.js`: textos en español e inglés.
-- `public/assets/app.js`: navegación, idioma, ilustración y estados de envío del formulario.
+- `src/content.ts`: textos en español e inglés.
+- `src/app.ts`: navegación, idioma, ilustración y estados de envío del formulario.
+- `src/contact-*.ts`: contrato compartido, validación, cliente HTTP y verificación Turnstile.
+- `scripts/*.ts`: compilación y controles de despliegue/repositorio.
+- `tsconfig.json`: comprobación estricta común al proyecto.
 - `public/assets/styles.css`: diseño adaptable y estilos de accesibilidad.
 - `public/assets/fonts/`: fuentes locales con licencias incluidas.
 - `licenses/` y `THIRD_PARTY_NOTICES.md`: avisos y procedencia de las fuentes.
 - `amplify/`: una función de contacto y una API HTTP; sin base de datos ni autenticación.
 - `infra/contact-prerequisites.yaml`: identidad SES/DKIM y rol de despliegue para la aplicación existente.
-- `tests/`: pruebas reproducibles sin enviar correo real.
+- `tests/*.test.ts`: pruebas reproducibles sin enviar correo real. `tests/deployment-security.test.py` conserva las comprobaciones de CloudFormation con las herramientas de Python.
 
 ## Alcance y pendientes
 

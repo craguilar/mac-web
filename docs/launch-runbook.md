@@ -6,7 +6,7 @@ Amplify Hosting está conectado directamente a `craguilar/mac-web`, rama `main`.
 
 GitHub Actions conserva **CI** para validar PR y pushes. Ambos sistemas se ejecutan de forma independiente: Amplify no espera el resultado del CI de GitHub. Para exigir CI antes de publicar, configurar la protección de `main` para requerir **Test and build (Node 24)** antes de fusionar y restringir los pushes que evadan esa revisión. Este cambio no modifica las reglas de GitHub.
 
-La interfaz continúa siendo HTML/CSS/JavaScript estático. El contacto usa una API HTTP de API Gateway, una función Lambda administrada por Amplify y SES. No hay base de datos, Cognito ni SDK de Amplify en el navegador. La analítica permanece desconectada.
+La interfaz se escribe en TypeScript estricto y esbuild la compila a HTML/CSS/JavaScript estático en `dist/`. Los tipos del frontend, backend, scripts y pruebas se comprueban antes del despliegue. El contacto usa una API HTTP de API Gateway, una función Lambda administrada por Amplify y SES. No hay base de datos, Cognito ni SDK de Amplify en el navegador. La analítica permanece desconectada.
 
 ## Configuración en Amplify
 
@@ -39,7 +39,7 @@ El resto de la configuración sigue usando la conexión directa:
 
 - `AMPLIFY_APP_ID`, `AWS_ROLE_ARN` y `AWS_REGION` ya no se utilizan como variables de GitHub Actions. Se pueden retirar del entorno `production` si se crearon exclusivamente para este repositorio.
 - `MAC_AMPLIFY_DEPLOY_APPROVED`, `MAC_AMPLIFY_APPROVED_BRANCH`, `MAC_AMPLIFY_APPROVED_COMMIT` y `MAC_AMPLIFY_DEPLOY_OWNER` pertenecían al flujo anterior y ya no se utilizan. Retirar esos valores si se añadieron en Amplify.
-- `AWS_APP_ID`, `AWS_BRANCH` y `AWS_PULL_REQUEST_ID` los proporciona Amplify. No configurarlos manualmente. El control `scripts/check-deploy-branch.cjs` permite `main` y rechaza vistas previas; no exige una aprobación por commit. [Variables de Amplify](https://docs.aws.amazon.com/amplify/latest/userguide/environment-variables.html).
+- `AWS_APP_ID`, `AWS_BRANCH` y `AWS_PULL_REQUEST_ID` los proporciona Amplify. No configurarlos manualmente. El control `scripts/check-deploy-branch.ts` permite `main` y rechaza vistas previas; no exige una aprobación por commit. [Variables de Amplify](https://docs.aws.amazon.com/amplify/latest/userguide/environment-variables.html).
 
 Las dependencias del backend están fijadas en `package-lock.json`; tanto CI como Amplify usan `npm ci`. El build de producción falla si falta el endpoint en `amplify_outputs.json`. También requiere la clave pública de Turnstile. Solo copia esa URL y `TURNSTILE_SITE_KEY` a `dist/assets/contact-config.js`; los outputs completos y el destinatario no se publican.
 

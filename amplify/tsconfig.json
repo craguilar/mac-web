@@ -1,8 +1,13 @@
 {
-  "compilerOptions": {
-    "target": "ES2022", "module": "ESNext", "moduleResolution": "Bundler",
-    "strict": true, "noEmit": true, "allowJs": true, "esModuleInterop": true,
-    "skipLibCheck": true, "types": ["node", "aws-lambda"]
-  },
-  "include": ["**/*.ts", "**/*.cjs", "../public/assets/contact-validation.js"]
+  "extends": "../tsconfig.json",
+  "include": [
+    "**/*.ts",
+    "../src/contact-validation.ts",
+    "../src/http.ts"
+  ],
+  "exclude": [
+    "../node_modules",
+    "../dist",
+    "../.amplify"
+  ]
 }

@@ -7,7 +7,7 @@ El sitio corporativo de MAC Tecnología se dirige a empresas del sur de México 
 | Decisión | Requisito |
 | --- | --- |
 | Diseño y contenido | Conservar Monolito suave, sus colores y fluidez en móvil, la identidad chiapaneca discreta y el tono cercano y práctico. Mantener «Buenas ideas. Tecnología que las hace realidad.», el texto aprobado de Nosotros y la oferta de servicios vigente. Toda mención de clientes, testimonios, resultados o certificaciones requiere evidencia aprobada. |
-| Arquitectura | Servir HTML, CSS y JavaScript estáticos desde el repositorio público `craguilar/mac-web`. Mantener la navegación por anclas y `?lang=es` / `?lang=en`. El alcance excluye Flowly y una migración a React o Next.js. El envío del formulario requiere un servicio de contacto independiente del alojamiento estático. |
+| Arquitectura | Escribir la lógica en TypeScript estricto y compilarla con esbuild para servir HTML, CSS y JavaScript estáticos desde el repositorio público `craguilar/mac-web`. Mantener la navegación por anclas y `?lang=es` / `?lang=en`. El alcance excluye Flowly y una migración a React o Next.js. El envío del formulario requiere un servicio de contacto independiente del alojamiento estático. |
 | Alojamiento | **AWS Amplify Hosting** es la plataforma elegida. Se evaluaron Cloudflare y el alojamiento directo en S3. El único entorno alojado es producción, desde `main`. |
 | Dominio | El dominio elegido es `mactecnologia.com.mx`. La puesta en producción depende de confirmar su disponibilidad o titularidad, el control del DNS y la variante canónica (raíz o `www`). |
 

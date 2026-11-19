@@ -1,9 +1,9 @@
-const test=require('node:test');
-const assert=require('node:assert/strict');
-const {createVerifier}=require('../amplify/functions/contact/turnstile.cjs');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createVerifier} from '../amplify/functions/contact/turnstile.ts';
 const origin='https://mactecnologia.com.mx';
 const good={success:true,hostname:'mactecnologia.com.mx',action:'contact'};
-function setup(result=good){let calls=0;const verify=createVerifier({getSecret:()=> 'private-test-secret',fetcher:async(url,options)=>{calls++;assert.equal(url,'https://challenges.cloudflare.com/turnstile/v0/siteverify');assert.deepEqual(JSON.parse(options.body),{secret:'private-test-secret',response:'visitor-token'});return {ok:true,json:async()=>result};}});return {verify,calls:()=>calls};}
+function setup(result:unknown=good){let calls=0;const verify=createVerifier({getSecret:()=> 'private-test-secret',fetcher:async(url,options)=>{calls++;assert.equal(url,'https://challenges.cloudflare.com/turnstile/v0/siteverify');assert.deepEqual(JSON.parse(String(options.body)),{secret:'private-test-secret',response:'visitor-token'});return {ok:true,json:async()=>result};}});return {verify,calls:()=>calls};}
 test('Turnstile requires provider success, matching hostname and contact action',async()=>{
  assert.deepEqual(await setup().verify('visitor-token',origin),{ok:true});
  for(const result of [{success:false,'error-codes':['timeout-or-duplicate']},{...good,hostname:'evil.example'},{...good,action:'login'},{success:true},null])assert.deepEqual(await setup(result).verify('visitor-token',origin),{ok:false,reason:'verification'});
@@ -20,7 +20,7 @@ test('missing secret, failed provider and malformed response fail closed',async(
  }
 });
 test('verification times out and never logs secrets or request bodies',async t=>{
- t.mock.timers.enable({apis:['setTimeout']});let signal;
- const verify=createVerifier({getSecret:()=> 'secret',fetcher:async(_url,options)=>new Promise((_resolve,reject)=>{signal=options.signal;signal.addEventListener('abort',()=>reject(Error('timeout')));})});
- const result=verify('visitor-token',origin);t.mock.timers.tick(4000);assert.equal(signal.aborted,true);assert.deepEqual(await result,{ok:false,reason:'unavailable'});
+ t.mock.timers.enable({apis:['setTimeout']});let signal:AbortSignal|null|undefined;
+ const verify=createVerifier({getSecret:()=> 'secret',fetcher:async(_url,options)=>new Promise((_resolve,reject)=>{signal=options.signal;assert.ok(signal);signal.addEventListener('abort',()=>reject(Error('timeout')));})});
+ const result=verify('visitor-token',origin);t.mock.timers.tick(4000);assert.ok(signal);assert.equal(signal.aborted,true);assert.deepEqual(await result,{ok:false,reason:'unavailable'});
 });

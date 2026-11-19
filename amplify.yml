@@ -5,7 +5,7 @@ backend:
     build:
       commands:
         - nvm use 24
-        - node scripts/check-deploy-branch.cjs
+        - node scripts/check-deploy-branch.ts
         - npm ci
         - npm run check
         - npm test
