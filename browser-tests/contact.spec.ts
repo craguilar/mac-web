@@ -15,6 +15,10 @@ async function fixture(page:Page){
  page.on('pageerror',error=>errors.push(error.message));
  await page.addInitScript(()=>{
   (window as unknown as {violations:string[]}).violations=[];
+  (window as unknown as {messages:unknown[]}).messages=[];
+  window.addEventListener('message',event=>{
+   (window as unknown as {messages:unknown[]}).messages.push({type:event.data?.type,origin:event.origin,fromParent:event.source===window.parent});
+  });
   document.addEventListener('securitypolicyviolation',event=>{
    (window as unknown as {violations:string[]}).violations.push(event.violatedDirective+': '+event.blockedURI);
   });
@@ -48,6 +52,16 @@ async function commands(page:Page){
  if(!frame)return [];
  return frame.evaluate(()=>((window as unknown as {macAnalyticsLayer:ArrayLike<unknown>[]}).macAnalyticsLayer??[]).map(command=>Array.from(command)));
 }
+test.afterEach(async({page},testInfo)=>{
+ if(testInfo.status===testInfo.expectedStatus)return;
+ for(const frame of page.frames()){
+  if(!frame.url().startsWith(origin))continue;
+  console.log('Browser failure diagnostics',await frame.evaluate(()=>{
+   const state=window as unknown as {messages:unknown[];violations:string[];macAnalyticsConfig:unknown;macAnalyticsLayer:unknown[]};
+   return {url:location.href,ready:document.readyState,messages:state.messages,violations:state.violations,config:state.macAnalyticsConfig,queued:state.macAnalyticsLayer?.length};
+  }));
+ }
+});
 for(const language of ['es','en'] as const){
  test(`${language}: mobile form, consent, failed delivery and a single accepted lead`,async({page})=>{
   const f=await fixture(page);

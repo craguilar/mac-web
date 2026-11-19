@@ -1,5 +1,7 @@
 # MAC Tecnología
 
+> Estado comprobado al 19 de noviembre de 2026: [seguridad, privacidad, GA4 y Search Console](docs/launch-verification.md). Este registro actualiza los puntos históricos que aparecen abajo.
+
 Sitio bilingüe de MAC Tecnología, con el diseño Monolito suave. El formulario envía consultas mediante un backend de Amplify Gen 2 y Amazon SES. El destinatario se configura en AWS, nunca en el navegador.
 
 ## Especificación de lanzamiento

@@ -1,5 +1,7 @@
 # Especificación de lanzamiento de MAC Tecnología
 
+> Estado comprobado al 19 de noviembre de 2026: [seguridad, privacidad, GA4 y Search Console](launch-verification.md). Este registro actualiza los puntos históricos que aparecen abajo.
+
 ## Producto y arquitectura
 
 El sitio corporativo de MAC Tecnología se dirige a empresas del sur de México y de la Ciudad de México. El lanzamiento debe ofrecer la misma información y el mismo flujo de contacto en español e inglés, permitir consultas reales y medir interacciones con consentimiento.

@@ -6,13 +6,14 @@ This record supplements the older launch roadmap. Production uses Spanish at `/`
 
 [PR #21](https://github.com/craguilar/mac-web/pull/21) adds HTTP CSP, HSTS, MIME, referrer, framing and permissions headers. CSP permits local assets, the exact production contact endpoint, Cloudflare Turnstile, and Google's documented analytics-only destinations. Inline scripts/styles and third-party framing are blocked. The same-origin analytics iframe remains allowed. HSTS applies to the current host without preloading or assuming every subdomain is HTTPS-ready. HTML `no-store` rules remain in place for the language-query redirects.
 
-The overrides patch Handlebars 4.7.10, Lodash 4.18.1, Immutable 3.8.4, GraphQL Tools utils 12.1.0, Minimatch 11.0.9, Glob 14.0.6 and OpenTelemetry core 2.8.0 where npm can replace them. Schema 10.1.5 and merge 9.2.8 accompany the GraphQL utility upgrade to preserve generator compatibility and GraphQL 15 support. Revisit overrides when Amplify/CDK ship patched dependency trees.
+The overrides patch Handlebars 4.7.10, Lodash 4.18.1, Immutable 3.8.4, GraphQL Tools utils 12.1.0, Minimatch 11.0.9, Glob 14.0.6 where npm can replace them. Schema 10.1.5 and merge 9.2.8 accompany the GraphQL utility upgrade to preserve generator compatibility and GraphQL 15 support. Revisit overrides when Amplify/CDK ship patched dependency trees.
 
 The full development audit is **not clean**. Do not dismiss these findings as fixed:
 
 | Remaining upstream dependency | Advisory / scope | Follow-up |
 | --- | --- | --- |
 | CDK's bundled Minimatch 10.2.6 | [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249), moderate glob amplification DoS | The current CDK release bundles its own copy, unaffected by npm overrides. Monitor a patched CDK release. Build patterns are repository-controlled; do not feed untrusted patterns to build tooling. |
+| Amplify's bundled OpenTelemetry core 2.0.0 | [GHSA-8988-4f7v-96qf](https://github.com/advisories/GHSA-8988-4f7v-96qf), moderate unbounded baggage allocation | The current Amplify data constructs bundle nested copies that npm overrides cannot replace. Keep build tooling away from untrusted telemetry input and monitor upstream releases. |
 | Amplify's Zod 3.x dependencies, including bundled copies | [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5), high memory exhaustion on oversized collections | No compatible Zod 3 fix was identified. A forced Zod 4 substitution would break Amplify's schema contract. Monitor upstream fixes; validate only trusted build/config inputs. |
 
 These packages are build dependencies, not scripts served to visitors or dependencies of the SES Lambda handler. That limits the exposed path; it does not eliminate build-time risk. CI has read-only repository access, no AWS credentials and no deployment step. Production-only npm audit reported zero findings. The original 10 GitHub alerts include multiple advisories for the same packages; inherited npm audit rows are not independent vulnerabilities.
@@ -45,4 +46,6 @@ In GA4 Admin → Data display → Events, find `generate_lead` and mark the exis
 
 The owner supplied a domain-verification TXT value. It was appended to the apex Route 53 TXT record without replacing existing values. Route 53 reported `INSYNC`, and Google's public DNS returned the verification value. The owner then confirmed **domain ownership verified and sitemap submitted successfully** for `https://mactecnologia.com.mx/sitemap.xml`.
 
-URL Inspection of `https://mactecnologia.com.mx/` and `https://mactecnologia.com.mx/en/` is the remaining Google-side check: test each live URL and request indexing if offered. Sitemap submission and a successful live test do not guarantee indexing or ranking. Keep the ownership TXT record in place.
+The owner also confirmed both URL Inspection live tests passed for `https://mactecnologia.com.mx/` and `https://mactecnologia.com.mx/en/`, with indexing requested or already indexed. Sitemap submission and a successful live test do not guarantee indexing or ranking. Keep the ownership TXT record in place.
+
+A manual CI run with `live_prod_checks=true` performs read-only Chromium/WebKit checks against the deployed site and saves mobile screenshots. It rejects analytics and aborts any contact API or Google measurement request; it never submits a message.

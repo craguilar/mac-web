@@ -6,6 +6,11 @@ on:
   push:
     branches: [main, dev]
   workflow_dispatch:
+    inputs:
+      live_prod_checks:
+        description: Run read-only mobile checks against the deployed production site
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -38,9 +43,11 @@ jobs:
       - name: Install mobile browser engines
         run: npx playwright install --with-deps chromium webkit
       - name: Check mobile form, consent and CSP in Chromium and WebKit
+        env:
+          MAC_LIVE_CHECK: ${{ github.event_name == 'workflow_dispatch' && inputs.live_prod_checks && 'true' || 'false' }}
         run: npm run test:browser
       - name: Preserve browser diagnostics
-        if: failure()
+        if: failure() || (github.event_name == 'workflow_dispatch' && inputs.live_prod_checks)
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mobile-browser-diagnostics
