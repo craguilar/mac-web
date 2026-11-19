@@ -17,10 +17,10 @@ Referencias: [widget](https://developers.cloudflare.com/turnstile/get-started/cl
 
 ## Proteger GitHub
 
-Desde PowerShell, autenticar la cuenta propietaria:
+Desde PowerShell, autenticar la cuenta propietaria. Estos comandos conservan el protocolo SSH existente y omiten crear/subir claves SSH; seleccionar `craguilar` en el navegador. El permiso `workflow` permite publicar los cambios de CI:
 
 ```powershell
-gh auth login --hostname github.com --git-protocol https --web
+gh auth login --hostname github.com --web --git-protocol ssh --skip-ssh-key --scopes workflow
 gh auth switch --hostname github.com --user craguilar
 gh api user --jq .login
 ```

@@ -2,10 +2,10 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const {reviewRuleset,ciRuleset}=require('../scripts/harden-github.cjs');
 test('hardening preserves existing merge restrictions and bypass actors',()=>{
- const original={name:'Main enforced',target:'branch',enforcement:'active',bypass_actors:[{actor_id:2,actor_type:'RepositoryRole',bypass_mode:'always'}],conditions:{ref_name:{include:['~DEFAULT_BRANCH'],exclude:[]}},rules:[{type:'deletion'},{type:'non_fast_forward'},{type:'pull_request',parameters:{required_approving_review_count:2,allowed_merge_methods:['squash'],dismiss_stale_reviews_on_push:false,require_review_thread_resolution:false}}]};
+ const original={name:'Main enforced',target:'branch',enforcement:'active',bypass_actors:[{actor_id:2,actor_type:'RepositoryRole',bypass_mode:'always'}],conditions:{ref_name:{include:['~DEFAULT_BRANCH'],exclude:[]}},rules:[{type:'deletion'},{type:'non_fast_forward'},{type:'pull_request',parameters:{required_approving_review_count:2,allowed_merge_methods:['squash'],dismiss_stale_reviews_on_push:false,required_review_thread_resolution:false}}]};
  const result=reviewRuleset(original);
  assert.deepEqual(result.bypass_actors,original.bypass_actors);assert.deepEqual(result.conditions,original.conditions);assert.deepEqual(result.rules.slice(0,2),original.rules.slice(0,2));
- assert.equal(result.rules[2].parameters.required_approving_review_count,2);assert.equal(result.rules[2].parameters.dismiss_stale_reviews_on_push,true);assert.deepEqual(result.rules[2].parameters.allowed_merge_methods,['squash']);
+ assert.equal(result.rules[2].parameters.required_approving_review_count,2);assert.equal(result.rules[2].parameters.dismiss_stale_reviews_on_push,true);assert.equal(result.rules[2].parameters.required_review_thread_resolution,true);assert.equal(Object.hasOwn(result.rules[2].parameters,'require_review_thread_resolution'),false);assert.deepEqual(result.rules[2].parameters.allowed_merge_methods,['squash']);
  assert.equal(original.rules[2].parameters.dismiss_stale_reviews_on_push,false);assert.deepEqual(reviewRuleset(result),result);
  assert.throws(()=>reviewRuleset({...original,rules:[]}),/Expected/);
 });

@@ -6,7 +6,7 @@ function reviewRuleset(existing){
  const review=body.rules.find(rule=>rule.type==='pull_request');
  if(!review)throw new Error('Expected the existing pull request rule; inspect repository rules before proceeding.');
  review.parameters.dismiss_stale_reviews_on_push=true;
- review.parameters.require_review_thread_resolution=true;
+ review.parameters.required_review_thread_resolution=true;
  review.parameters.required_approving_review_count=Math.max(1,review.parameters.required_approving_review_count);
  return body;
 }
@@ -49,7 +49,7 @@ function main(){
  const verifiedCI=api(`${base}/rulesets/${rules.find(rule=>rule.name===ci.name).id}`);
  const verifiedReviews=api(`${base}/rulesets/${existing.id}`);
  const workflow=api(`${base}/actions/permissions/workflow`),forks=api(`${base}/actions/permissions/fork-pr-contributor-approval`);
- if(updated.security_and_analysis?.secret_scanning?.status!=='enabled'||updated.security_and_analysis?.secret_scanning_push_protection?.status!=='enabled'||verifiedCI.enforcement!=='active'||verifiedCI.bypass_actors.length||!verifiedCI.rules.some(rule=>rule.type==='required_status_checks'&&rule.parameters.required_status_checks.some(check=>check.context===checkName))||!verifiedReviews.rules.some(rule=>rule.type==='pull_request'&&rule.parameters.dismiss_stale_reviews_on_push&&rule.parameters.require_review_thread_resolution)||workflow.default_workflow_permissions!=='read'||workflow.can_approve_pull_request_reviews!==false||forks.approval_policy!=='all_external_contributors')throw new Error('Settings verification failed. Inspect the reported settings before retrying.');
+ if(updated.security_and_analysis?.secret_scanning?.status!=='enabled'||updated.security_and_analysis?.secret_scanning_push_protection?.status!=='enabled'||verifiedCI.enforcement!=='active'||verifiedCI.bypass_actors.length||!verifiedCI.rules.some(rule=>rule.type==='required_status_checks'&&rule.parameters.required_status_checks.some(check=>check.context===checkName))||!verifiedReviews.rules.some(rule=>rule.type==='pull_request'&&rule.parameters.dismiss_stale_reviews_on_push&&rule.parameters.required_review_thread_resolution)||workflow.default_workflow_permissions!=='read'||workflow.can_approve_pull_request_reviews!==false||forks.approval_policy!=='all_external_contributors')throw new Error('Settings verification failed. Inspect the reported settings before retrying.');
  console.log('Verified CI, review, secret-scanning and Actions protections.');
 }
 module.exports={reviewRuleset,ciRuleset};
