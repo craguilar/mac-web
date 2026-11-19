@@ -31,8 +31,8 @@ test('CI remains validation-only with pinned actions and locked dependencies', (
   assert.match(workflow, /persist-credentials: false/);
   assert.match(workflow, /package-manager-cache: false/);
   const actions = [...workflow.matchAll(/uses: ([^\s]+)@([a-f0-9]{40})/g)];
-  assert.equal(actions.length, 2);
-  assert.deepEqual(actions.map(m => m[1]), ['actions/checkout', 'actions/setup-node']);
+  assert.equal(actions.length, 3);
+  assert.deepEqual(actions.map(m => m[1]), ['actions/checkout', 'actions/setup-node', 'actions/upload-artifact']);
   assert.match(workflow, /run: npm test/);
   assert.match(workflow, /run: npm run build/);
   assert.doesNotMatch(workflow, /pull_request_target|id-token:|secrets\.|configure-aws-credentials|run:.*(?:deploy|amplify publish)/);
