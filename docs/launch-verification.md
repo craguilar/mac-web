@@ -24,7 +24,7 @@ Sources: [Amplify headers](https://docs.aws.amazon.com/amplify/latest/userguide/
 
 ## Privacy notice inputs still required
 
-The full ES/EN notice is not published. The owner was asked for the legal controller name, publishable address, privacy-request email and contact-message retention policy. Do not substitute the private form-recipient address or invent these facts.
+The [ES/EN notice draft](privacy-notice-draft.md) is prepared for review but is not published. The owner was asked for the legal controller name, publishable address, privacy-request email and contact-message retention policy. Do not substitute the private form-recipient address or invent these facts.
 
 Verified implementation inventory for the notice:
 

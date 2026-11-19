@@ -26,6 +26,7 @@ function fixture({enabled=true,saved=new Map<string,string>(),pathname='/'}={}){
  Object.defineProperty(dom.HTMLSelectElement.prototype,'value',{configurable:true,get(this:HTMLSelectElement){return this.querySelector('option[selected]')?.getAttribute('value')??'';},set(this:HTMLSelectElement,value:string){this.querySelectorAll('option').forEach(option=>{if(option.value===value)option.setAttribute('selected','');else option.removeAttribute('selected');});}});
  Object.defineProperty(dom.HTMLElement.prototype,'contentWindow',{configurable:true,get(this:HTMLElement){if(!channels.has(this))channels.set(this,{postMessage:message=>messages.push(message)});return channels.get(this);}});
  const win={
+  postMessage(message:typeof messages[number]){messages.push(message);},
   macContactConfig:{endpoint:'https://example123.execute-api.us-east-2.amazonaws.com/contact',siteKey:'0x4AAAAAAAAAAAExamplePublicKey'},
   macAnalyticsConfig:{enabled,measurementId:'G-TEST12345',productionHosts:['mactecnologia.com.mx']},
   localStorage:{getItem:(key:string)=>saved.get(key)??null,setItem:(key:string,value:string)=>saved.set(key,value)},
