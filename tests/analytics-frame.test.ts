@@ -7,7 +7,7 @@ test('Google loads only after a trusted consent message and receives canonical p
  const scripts:Array<Record<string,unknown>>=[];const replies:unknown[]=[];
  const callbacks:Array<(event:Record<string,unknown>)=>void>=[];
  const parent={postMessage(message:unknown){replies.push(message);}};
- const window={parent,macAnalyticsConfig:{enabled:true,measurementId:'G-TEST12345',productionHosts:['mactecnologia.com.mx']},macAnalyticsLayer:[] as unknown[],addEventListener(_name:string,callback:typeof callbacks[number]){callbacks.push(callback);}};
+ const window={parent,postMessage:parent.postMessage,macAnalyticsConfig:{enabled:true,measurementId:'G-TEST12345',productionHosts:['mactecnologia.com.mx']},macAnalyticsLayer:[] as unknown[],addEventListener(_name:string,callback:typeof callbacks[number]){callbacks.push(callback);}};
  const location={origin:'https://mactecnologia.com.mx',hostname:'mactecnologia.com.mx',protocol:'https:',href:'https://mactecnologia.com.mx/analytics.html?email=private@example.test'};
  vm.runInNewContext(code,{window,location,URL,URLSearchParams,document:{createElement(){return {};},head:{append(script:Record<string,unknown>){scripts.push(script);}}}});
  const dispatch=(data:unknown,source:unknown=parent,origin=location.origin)=>callbacks[0]({data,source,origin});

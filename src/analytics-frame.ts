@@ -22,7 +22,8 @@ window.addEventListener('message',(message:MessageEvent)=>{
   gtag('js',new Date());gtag('config',config.measurementId,pageConfiguration('es'));
   const script=document.createElement('script');script.async=true;script.referrerPolicy='no-referrer';
   script.src=`https://www.googletagmanager.com/gtag/js?id=${config.measurementId}&l=macAnalyticsLayer`;
-  script.onload=()=>window.parent.postMessage({type:'mac-analytics-ready'},location.origin);
+  // Keep the sender realm stable in WebKit while retaining strict receiver checks.
+  script.onload=()=>window.postMessage.call(window.parent,{type:'mac-analytics-ready'},{targetOrigin:location.origin});
   document.head.append(script);
  }
  if(message.data.type==='mac-analytics-event'&&started&&isRecord(message.data.event)){

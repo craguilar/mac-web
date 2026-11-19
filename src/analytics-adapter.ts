@@ -24,11 +24,13 @@ export function browserAnalyticsHost():AnalyticsChannelHost{
    const frame=document.createElement('iframe');
    frame.hidden=true;frame.tabIndex=-1;frame.setAttribute('aria-hidden','true');
    frame.title='Optional analytics';frame.referrerPolicy='no-referrer';frame.src='/analytics.html';
+   // Use this window's method so WebKit attributes the sender to this realm.
+   const post=(message:unknown)=>{if(frame.contentWindow)window.postMessage.call(frame.contentWindow,message,{targetOrigin:location.origin});};
    const onMessage=(event:MessageEvent)=>{if(event.source===frame.contentWindow&&event.origin===location.origin&&event.data?.type==='mac-analytics-ready')ready();};
    window.addEventListener('message',onMessage);
-   frame.onload=()=>frame.contentWindow?.postMessage({type:'mac-analytics-start'},location.origin);
+   frame.onload=()=>post({type:'mac-analytics-start'});
    document.body.append(frame);
-   return {send(event){frame.contentWindow?.postMessage({type:'mac-analytics-event',event},location.origin);},destroy(){window.removeEventListener('message',onMessage);frame.onload=null;frame.remove();}};
+   return {send(event){post({type:'mac-analytics-event',event});},destroy(){window.removeEventListener('message',onMessage);frame.onload=null;frame.remove();}};
   },
   clearCookies(){
    try{

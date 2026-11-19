@@ -25,7 +25,9 @@ function fixture({enabled=true,saved=new Map<string,string>(),pathname='/'}={}){
  Object.defineProperty(dom.HTMLElement.prototype,'reset',{configurable:true,value:function(this:HTMLFormElement){this.dispatchEvent(new dom.Event('reset') as unknown as Event);this.querySelectorAll<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>('[name]').forEach(element=>{element.value='';});}});
  Object.defineProperty(dom.HTMLSelectElement.prototype,'value',{configurable:true,get(this:HTMLSelectElement){return this.querySelector('option[selected]')?.getAttribute('value')??'';},set(this:HTMLSelectElement,value:string){this.querySelectorAll('option').forEach(option=>{if(option.value===value)option.setAttribute('selected','');else option.removeAttribute('selected');});}});
  Object.defineProperty(dom.HTMLElement.prototype,'contentWindow',{configurable:true,get(this:HTMLElement){if(!channels.has(this))channels.set(this,{postMessage:message=>messages.push(message)});return channels.get(this);}});
+ let failLeadTransport=false;
  const win={
+  postMessage(message:typeof messages[number]){if(failLeadTransport&&message.event?.name==='generate_lead')throw new Error('Analytics transport unavailable');messages.push(message);},
   macContactConfig:{endpoint:'https://example123.execute-api.us-east-2.amazonaws.com/contact',siteKey:'0x4AAAAAAAAAAAExamplePublicKey'},
   macAnalyticsConfig:{enabled,measurementId:'G-TEST12345',productionHosts:['mactecnologia.com.mx']},
   localStorage:{getItem:(key:string)=>saved.get(key)??null,setItem:(key:string,value:string)=>saved.set(key,value)},
@@ -48,7 +50,7 @@ function fixture({enabled=true,saved=new Map<string,string>(),pathname='/'}={}){
  function ready(){const frame=document.querySelector('iframe');assert.ok(frame);const source=(frame as HTMLIFrameElement).contentWindow;listeners.get('message')?.forEach(callback=>callback({source,origin:location.origin,data:{type:'mac-analytics-ready'}}));}
  function fill(){for(const [name,value] of Object.entries({name:'Private Name',email:'private@example.test',message:'Private inquiry text'})){const input=document.querySelector<HTMLInputElement|HTMLTextAreaElement>(`[name="${name}"]`)!;input.value=value;}widgets.at(-1)!.callback('verified-token');}
  function submit(){document.querySelector('form')!.dispatchEvent(new dom.Event('submit',{bubbles:true,cancelable:true}) as unknown as Event);}
- return {document,location,saved,messages,requests,widgets,click,ready,fill,submit,respond:(callback:typeof respond)=>{respond=callback;}};
+ return {document,location,saved,messages,requests,widgets,click,ready,fill,submit,failLeadTransport(){failLeadTransport=true;},respond:(callback:typeof respond)=>{respond=callback;}};
 }
 
 test('consent controls block collection before consent and after rejection, restore a choice, and allow withdrawal',async()=>{
@@ -99,4 +101,14 @@ test('withdrawing analytics during a pending submission leaves contact delivery 
  assert.equal(f.requests.length,1);assert.equal(f.document.querySelector('iframe'),null);
  assert.equal(f.messages.filter(message=>message.event?.name==='generate_lead').length,0);
  assert.match(f.document.querySelector('.send-feedback')!.textContent??'',/Gracias/);
+});
+
+
+test('analytics transport failure cannot hide accepted contact feedback or retain a sent draft',async()=>{
+ const f=fixture();await tick();f.click('[data-consent="granted"]');f.ready();f.fill();f.failLeadTransport();
+ f.submit();await tick();
+ assert.equal(f.requests.length,1);
+ assert.match(f.document.querySelector('.send-feedback')!.textContent??'',/Gracias/);
+ assert.equal((f.document.querySelector('[name="message"]') as HTMLTextAreaElement).value,'');
+ assert.equal(f.document.querySelector('iframe'),null);
 });
