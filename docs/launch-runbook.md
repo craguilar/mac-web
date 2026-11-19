@@ -92,6 +92,14 @@ Preparar y revisar un change set de `mac-web-contact-prerequisites`, conservando
 
 Si el primer intento terminó en `ROLLBACK_COMPLETE`, inventariar los recursos de la pila backend fallida. Cuando todos estén en `DELETE_COMPLETE` y no queden recursos activos o retenidos, eliminar únicamente ese registro de pila fallida con autorización y volver a desplegar `main`. No borrar la pila de requisitos, `CDKToolkit`, SES ni DNS. Si quedan recursos, revisar su recuperación individual antes de eliminar la pila. Completar también las variables y el secreto de Turnstile requeridos por el despliegue.
 
+### Error «logs:CreateLogGroup» o «logs:DeleteLogGroup»
+
+La retención de logs configurada en `defineFunction` crea un grupo explícito con nombre generado por CloudFormation: `amplify-<APP_ID>-main-...-contactloggroup...`. Ese grupo no comienza con `/aws/lambda/`. Tanto `DeploymentExecutionPolicy` (crear, configurar y eliminar el grupo) como `RuntimeBoundary` (crear streams y escribir eventos) deben admitir ese prefijo exacto de aplicación/rama, además del prefijo convencional de Lambda.
+
+Preparar y revisar un change set de los requisitos que modifique únicamente esas dos políticas; conservar cuenta, región y el prefijo `amplify-<APP_ID>-main-*`. Aplicarlo antes de reintentar. No usar `log-group:*` ni ampliar permisos a otras aplicaciones.
+
+Un rechazo de creación puede ir seguido de un rechazo de borrado y dejar la pila inicial en `ROLLBACK_FAILED` y su hija en `DELETE_FAILED`. Consultar eventos y recursos de ambas pilas, y comprobar mediante `describe-log-groups` si el grupo llegó a existir. Tras corregir los permisos, eliminar la pila backend inicial fallida con autorización y dejar que CloudFormation complete la limpieza de la hija; verificar la finalización antes de desplegar de nuevo. Si existen logs u otros recursos con datos, revisar su conservación antes de borrar. Mantener intactas las pilas de requisitos y bootstrap.
+
 ### Error «Deployment is not approved»
 
 Ese mensaje procede del antiguo `scripts/check-deploy-approval.cjs`, no de una autorización pendiente de AWS. Fusionar la actualización que elimina ese control y desplegar el commit nuevo de `main`. Reintentar un build de un commit antiguo seguirá ejecutando su archivo `amplify.yml` antiguo. No hace falta añadir variables de aprobación para el flujo actual.

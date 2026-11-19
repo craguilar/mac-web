@@ -169,6 +169,7 @@ Resources:
           - logs:PutLogEvents
           Resource:
           - Fn::Sub: arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/amplify-${AmplifyAppId}-*
+          - Fn::Sub: arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:amplify-${AmplifyAppId}-main-*
         - Effect: Allow
           Action:
           - amplify:GetBranch
@@ -290,6 +291,7 @@ Resources:
           - logs:UntagLogGroup
           Resource:
           - Fn::Sub: arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/amplify-${AmplifyAppId}-*
+          - Fn::Sub: arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:amplify-${AmplifyAppId}-main-*
         - Effect: Allow
           Action:
           - logs:DescribeLogGroups
