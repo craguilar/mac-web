@@ -7,9 +7,9 @@ import crypto from 'node:crypto';
 const root = path.resolve(import.meta.dirname, '..');
 const pub = path.join(root, 'public');
 const read = (p:string) => fs.readFileSync(path.join(pub, p), 'utf8');
-const html = read('index.html');
-const app = fs.readFileSync(path.join(root,'src/app.ts'),'utf8');
 const dist = path.join(root,'dist');
+const html = fs.readFileSync(path.join(dist,'index.html'),'utf8');
+const app = fs.readFileSync(path.join(root,'src/app.ts'),'utf8')+fs.readFileSync(path.join(root,'src/render-site.ts'),'utf8');
 const css = read('assets/styles.css');
 test('both languages retain brand, service structure and approved About copy', () => {
   for (const lang of ['es', 'en'] as const) {
@@ -23,11 +23,11 @@ test('both languages retain brand, service structure and approved About copy', (
   assert.match(app, /Tecnología que las hace realidad\./);
 });
 test('HTML and CSS resource links are local, portable and present', () => {
-  const refs = [...html.matchAll(/(?:src|href)="([^"#]+)"/g)].map(m => [dist, m[1]]);
+  const refs = ['index.html','en/index.html'].flatMap(file=>[...fs.readFileSync(path.join(dist,file),'utf8').matchAll(/<(?:script|link)\b[^>]*(?:src|href)="([^"#]+)"/g)].filter(m=>!m[1].startsWith('https:')).map(m=>[path.dirname(path.join(dist,file)),m[1]]));
   refs.push(...[...css.matchAll(/url\(['"]?([^)'"\s]+)['"]?\)/g)].map(m => [path.join(dist, 'assets'), m[1]]));
   for (const [base, ref] of refs) {
     if (ref.startsWith('data:')) continue;
-    assert.ok(ref.startsWith('./'), ref);
+    assert.match(ref,/^\.{1,2}\//);
     assert.ok(fs.existsSync(path.resolve(base, ref)), ref);
   }
 });
