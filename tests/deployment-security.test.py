@@ -49,6 +49,21 @@ class DeploymentSecurity(unittest.TestCase):
   self.assertTrue(actions.isdisjoint({'iam:DeleteRolePermissionsBoundary','iam:CreatePolicy','iam:CreatePolicyVersion','iam:SetDefaultPolicyVersion','iam:CreateUser','iam:CreateAccessKey','iam:*','*'}))
   passed=next(s for s in statements if 'iam:PassRole' in s['Action'])
   self.assertEqual(passed['Condition']['StringEquals']['iam:PassedToService'],'lambda.amazonaws.com')
+ def test_nested_stacks_can_pass_only_the_scoped_execution_role(self):
+  statements=self.prerequisites['Resources']['DeploymentExecutionPolicy']['Properties']['PolicyDocument']['Statement']
+  passed=[s for s in statements if 'iam:PassRole' in s['Action']]
+  self.assertEqual(len(passed),2)
+  expected={
+   'lambda.amazonaws.com':'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/amplify-${AmplifyAppId}-*',
+   'cloudformation.amazonaws.com':'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}'
+  }
+  self.assertEqual({s['Condition']['StringEquals']['iam:PassedToService'] for s in passed},set(expected))
+  for statement in passed:
+   service=statement['Condition']['StringEquals']['iam:PassedToService']
+   self.assertEqual(statement['Effect'],'Allow')
+   self.assertEqual(statement['Action'],['iam:PassRole'])
+   self.assertEqual(statement['Condition'],{'StringEquals':{'iam:PassedToService':service}})
+   self.assertEqual(statement['Resource'],[{'Fn::Sub':expected[service]}])
  def test_runtime_cannot_administer_account_or_send_to_arbitrary_recipients(self):
   statements=self.prerequisites['Resources']['RuntimeBoundary']['Properties']['PolicyDocument']['Statement']
   self.assertFalse(any(a.startswith(('iam:','sts:','cloudformation:','s3:')) for s in statements for a in s['Action']))
