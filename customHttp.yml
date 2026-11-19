@@ -1,0 +1,19 @@
+# Language-query redirects must reach Amplify even after a canonical page is cached.
+# Keep static assets cached; only the two HTML entry pages bypass caching.
+customHeaders:
+  - pattern: '/'
+    headers:
+      - key: 'Cache-Control'
+        value: 'no-store'
+  - pattern: '/index.html'
+    headers:
+      - key: 'Cache-Control'
+        value: 'no-store'
+  - pattern: '/en/'
+    headers:
+      - key: 'Cache-Control'
+        value: 'no-store'
+  - pattern: '/en/index.html'
+    headers:
+      - key: 'Cache-Control'
+        value: 'no-store'
