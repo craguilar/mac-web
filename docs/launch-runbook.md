@@ -6,7 +6,7 @@ Amplify Hosting está conectado directamente a `craguilar/mac-web`, rama `main`.
 
 GitHub Actions conserva **CI** para validar PR y pushes. Ambos sistemas se ejecutan de forma independiente: Amplify no espera el resultado del CI de GitHub. Para exigir CI antes de publicar, configurar la protección de `main` para requerir **Test and build (Node 24)** antes de fusionar y restringir los pushes que evadan esa revisión. Este cambio no modifica las reglas de GitHub.
 
-La interfaz se escribe en TypeScript estricto y esbuild la compila a HTML/CSS/JavaScript estático en `dist/`. Los tipos del frontend, backend, scripts y pruebas se comprueban antes del despliegue. El contacto usa una API HTTP de API Gateway, una función Lambda administrada por Amplify y SES. No hay base de datos, Cognito ni SDK de Amplify en el navegador. La analítica permanece desconectada.
+La interfaz se escribe en TypeScript estricto y esbuild la compila a HTML/CSS/JavaScript estático en `dist/`. Los tipos del frontend, backend, scripts y pruebas se comprueban antes del despliegue. El contacto usa una API HTTP de API Gateway, una función Lambda administrada por Amplify y SES. No hay base de datos, Cognito ni SDK de Amplify en el navegador. La integración de analítica está implementada y permanece desactivada hasta configurar GA4; ver la [guía de SEO y consentimiento](seo-analytics.md).
 
 ## Configuración en Amplify
 
@@ -110,14 +110,14 @@ El backend Gen 2 lo despliega el comando `ampx pipeline-deploy`; no crear un bac
 
 Antes de anunciar el lanzamiento o cambiar el dominio:
 
-- Servir `dist/` localmente con `python3 -m http.server 8000 --directory dist` y revisar `?lang=es` y `?lang=en`.
+- Servir `dist/` localmente con `python3 -m http.server 8000 --directory dist` y revisar `/` y `/en/`, además de los enlaces antiguos `?lang=es` y `?lang=en`.
 - Revisar 320, 390, 768 y 1440 px, teclado, foco, contraste, orden de lectura, Safari/iOS y Chrome/Android.
 - Probar formulario, errores, envío en curso, timeout, reintento, borrar/deshacer y conservación del borrador al cambiar idioma. Las pruebas locales simulan la red y no mandan correos.
-- Confirmar que solo la acción de enviar transmite el formulario y que analítica sigue desconectada. Aplicar los requisitos de la [especificación](PROJECT_PLAN.md) y de [contacto/privacidad](analytics-contact-readiness.md), sin confundir la explicación de finalidad/proveedores con el aviso completo pendiente.
-- Comprobar CSS, fuentes, SVG, licencias y avisos. El build publica únicamente el contenido de `public/`, licencias y avisos en `dist/`; excluir archivos privados y credenciales.
-- Mantener errores correctos para recursos inexistentes. El sitio usa anclas y `?lang=`, por lo que no necesita una reescritura global 200 de SPA. [Reglas de Amplify](https://docs.aws.amazon.com/amplify/latest/userguide/redirects.html).
+- Confirmar que solo la acción de enviar transmite el formulario y que la analítica no carga antes del consentimiento; sin configuración GA4 debe permanecer desactivada. Aplicar los requisitos de la [especificación](PROJECT_PLAN.md) y de [contacto/privacidad](analytics-contact-readiness.md), sin confundir la explicación de finalidad/proveedores con el aviso completo pendiente.
+- Comprobar CSS, fuentes, SVG, licencias y avisos. El build publica HTML prerenderizado, bundles y configuración pública, además de recursos de `public/`, licencias y avisos en `dist/`; excluir archivos privados y credenciales.
+- Mantener errores correctos para recursos inexistentes. El sitio usa anclas y páginas estáticas `/` y `/en/`, por lo que no necesita una reescritura global 200 de SPA. [Reglas de Amplify](https://docs.aws.amazon.com/amplify/latest/userguide/redirects.html).
 - Definir y probar cabeceras de seguridad, CSP y caché. Evitar caché `immutable` larga para assets sin hash en el nombre.
-- Completar SEO bilingüe, metadatos, canonical y sitemap para el dominio confirmado. El documento inicial está en inglés y el contenido se renderiza con JavaScript.
+- Verificar el SEO bilingüe publicado: HTML prerenderizado español en `/`, inglés en `/en/`, metadatos, canonical, hreflang, sitemap y robots. Comprobar redirects y respuestas 404 tras cada cambio de alojamiento; enviar sitemap y revisar indexación en Search Console.
 - Confirmar titularidad y acceso DNS de `mactecnologia.com.mx`, variante canónica, certificado, responsable operativo y alertas de gasto antes del cambio de dominio.
 
 Las pruebas automáticas no sustituyen una revisión completa de accesibilidad, navegador o recepción real de correo.

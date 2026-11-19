@@ -7,9 +7,9 @@ El sitio corporativo de MAC Tecnología se dirige a empresas del sur de México 
 | Decisión | Requisito |
 | --- | --- |
 | Diseño y contenido | Conservar Monolito suave, sus colores y fluidez en móvil, la identidad chiapaneca discreta y el tono cercano y práctico. Mantener «Buenas ideas. Tecnología que las hace realidad.», el texto aprobado de Nosotros y la oferta de servicios vigente. Toda mención de clientes, testimonios, resultados o certificaciones requiere evidencia aprobada. |
-| Arquitectura | Escribir la lógica en TypeScript estricto y compilarla con esbuild para servir HTML, CSS y JavaScript estáticos desde el repositorio público `craguilar/mac-web`. Mantener la navegación por anclas y `?lang=es` / `?lang=en`. El alcance excluye Flowly y una migración a React o Next.js. El envío del formulario requiere un servicio de contacto independiente del alojamiento estático. |
+| Arquitectura | Escribir la lógica en TypeScript estricto y compilarla con esbuild para servir HTML, CSS y JavaScript estáticos desde el repositorio público `craguilar/mac-web`. Mantener navegación por anclas, español en `/` e inglés en `/en/`; conservar compatibilidad con enlaces antiguos `?lang=es` / `?lang=en`. El alcance excluye Flowly y una migración a React o Next.js. El envío del formulario requiere un servicio de contacto independiente del alojamiento estático. |
 | Alojamiento | **AWS Amplify Hosting** es la plataforma elegida. Se evaluaron Cloudflare y el alojamiento directo en S3. El único entorno alojado es producción, desde `main`. |
-| Dominio | El dominio elegido es `mactecnologia.com.mx`. La puesta en producción depende de confirmar su disponibilidad o titularidad, el control del DNS y la variante canónica (raíz o `www`). |
+| Dominio | `mactecnologia.com.mx` es el host canónico HTTPS; `www.mactecnologia.com.mx` redirige con 301 y conserva la ruta. |
 
 ## Base de implementación
 
@@ -27,49 +27,51 @@ Actualización del 18 de noviembre de 2026: esos PR ya están integrados. Amplif
 
 ## Estado frente al plan original
 
-Evaluación del 18 de noviembre de 2026, basada en el código de `main`, los jobs y dominios de Amplify, la respuesta HTTPS pública y el ruleset activo de GitHub. «Pendiente de verificar» no significa que una configuración externa necesariamente falte.
+Evaluación del 19 de noviembre de 2026: el [PR #16](https://github.com/craguilar/mac-web/pull/16) está integrado en `fa39d9d` y publicado mediante el job 12 de Amplify (`SUCCEED` en build, deploy y verify), con 55 pruebas correctas. Se verificaron HTML ES/EN, sitemap, robots e imágenes mediante HTTPS. El [PR #17](https://github.com/craguilar/mac-web/pull/17) registra la corrección de la regla 404 comprobada contra Amplify. El propietario confirmó la recepción del formulario real tras el job 11 y la notificación de prueba SNS. Esa confirmación no documenta todavía la comprobación de Reply-To ni la matriz de dispositivos. «Pendiente de verificar» no significa que una configuración externa necesariamente falte.
 
 | Área | Estado comprobado | Trabajo restante |
 | --- | --- | --- |
-| A. Integración | Los módulos de #1 y #2 están integrados; pruebas y build funcionan. | Conectar las funciones preparadas a la página cuando se implementen los servicios reales. |
-| B. CI y alojamiento | CI valida PR; Amplify publica `main`. El dominio y HTTPS funcionan. | Exigir **Test and build (Node 24)** antes de fusionar: el ruleset actual exige una revisión, pero no contiene un check de estado obligatorio. |
-| C. Contacto | Implementado envío con Amplify Gen 2, API HTTP, Lambda y SES; destinatario confirmado en configuración AWS. Contrato de cliente/servidor unificado, con estados ES/EN y pruebas simuladas. | Completar bootstrap de CDK, desplegar el cambio y verificar recepción/Reply-To con autorización; seguimiento de rebotes y aviso completo pendientes. No considerar las pruebas simuladas evidencia de entrega real. |
-| C. Privacidad | No hay aviso de privacidad publicado en el sitio. | Preparar y revisar el aviso ES/EN con los datos reales del responsable, finalidad, proveedores y tratamiento antes de habilitar la recepción. |
-| D. GA4 y consentimiento | Existen una política y un controlador probados, pero están desconectados. No se carga GA4. | Confirmar propiedad/ID y hosts autorizados; integrar aceptar, rechazar y retirar; verificar red y eventos. `generate_lead` requiere entrega real verificada y consentimiento. |
-| E. SEO | Hay título y descripción que cambian con JavaScript; el HTML inicial está en inglés. | Resolver metadatos por idioma para indexación y enlaces compartidos; añadir canonical, hreflang, sitemap, robots y una imagen social. Verificar la variante canónica y sus redirecciones. |
-| E. Seguridad | HTTPS funciona. La respuesta HTML revisada no incluye CSP, HSTS, X-Content-Type-Options ni Referrer-Policy. | Configurar y probar las cabeceras, CSP y caché con los recursos reales; verificar respuestas para rutas inexistentes. |
-| E. Interfaz y accesibilidad | Contenido ES/EN, navegación y pruebas estáticas disponibles. Este cambio retira las etiquetas de prototipo y los comentarios de revisión de diseño, conservando el aviso funcional del formulario. | Completar revisión de teclado/lector de pantalla, Safari/iOS, Chrome/Android y rendimiento en dispositivos reales. Las pruebas locales de layout no sustituyen esa matriz. |
-| F. Operación y recuperación | Publicación automática y dominio comprobados. El runbook describe una reversión mediante PR. | Verificar alertas de disponibilidad, errores y gasto, responsables operativos y una prueba real de reversión. Su configuración externa no se ha auditado. |
-| G. Campaña | Etapa posterior al lanzamiento funcional; sin evidencia de ejecución en esta revisión. | Confirmar objetivo, oferta, cuenta y presupuesto; preparar campaña y conversiones después de verificar contacto y consentimiento. |
+| A. Integración | Formulario, validación compartida, Turnstile y backend de contacto conectados; tipos, pruebas y build pasan. | Mantener la regresión del contacto al incorporar funciones nuevas. La activación y recepción de eventos de analítica siguen pendientes en D. |
+| B. CI y alojamiento | Amplify publica `main`; job 12 correcto. El ruleset activo **Required CI for main** exige **Test and build (Node 24)** antes de fusionar. PR y restricciones de actualización de `main` también están activos. | Mantener estas reglas y verificar una reversión controlada. |
+| C. Contacto | Amplify Gen 2, API HTTP, Lambda y SES desplegados; Turnstile configurado y secreto cifrado de la rama. El propietario confirmó recepción real. La API rechaza una petición sin token con 403 y la preflight permite POST desde los dominios aprobados. | Comprobar Reply-To, responsable y plazo de atención; añadir seguimiento de rebotes/quejas de SES. |
+| C. Privacidad | Hay un texto breve ES/EN sobre finalidad y proveedores; falta el aviso completo revisado. | Prioridad inmediata: preparar y publicar el aviso ES/EN con datos reales del responsable, conservación y mecanismo de derechos. El contacto ya está habilitado. |
+| D. GA4 y consentimiento | Interfaz ES/EN, preferencia versionada, carga después de aceptar y revocación implementadas; pruebas de DOM y proveedor simulado pasan. Producción mantiene `enabled:false`, sin cargar Google. | Crear propiedad/flujo GA4 y obtener `G-…`; desactivar Medición mejorada, configurar Amplify y verificar red y recepción Realtime. `generate_lead` representa aceptación por la API/SES, no una venta. |
+| E. SEO | HTML completo ES en `/` y EN en `/en/`, canonical/hreflang, metadatos sociales, sitemap, robots e imágenes 1200 × 630 publicados. `www` redirige al host canónico. | Verificar dominio y enviar sitemap en Search Console; comprobar indexación. Repetir pruebas HTTP de redirects tras cambios de alojamiento y su invalidación de caché. |
+| E. Seguridad | HTTPS funciona. La respuesta HTML del 19 de noviembre no incluye CSP, HSTS, X-Content-Type-Options ni Referrer-Policy. | Configurar y probar las cabeceras, CSP y caché con Turnstile y la API reales; verificar respuestas para rutas inexistentes. |
+| E. Dependencias | Dependabot reporta 10 alertas abiertas en `package-lock.json`: 2 críticas, 5 altas y 3 medias; todas clasificadas como dependencias transitivas de desarrollo. Afectan Handlebars, GraphQL Tools, Immutable, Lodash y Minimatch. | Priorizar revisión de exposición y actualización de la cadena de herramientas. Validar instalación, tipos, pruebas, síntesis y build. La clasificación de desarrollo no sustituye una revisión de explotabilidad; esta auditoría no hizo esa revisión. |
+| E. Interfaz y accesibilidad | Revisión de código: formulario de una columna en móvil, campos de 16 px y Turnstile compacto. La herramienta de navegador falló antes de abrir la página; no hay aprobación visual móvil en esta revisión. | Probar Safari/iOS, Chrome/Android, teclado, lector de pantalla, zoom, errores y rendimiento; documentar tamaños y resultados. |
+| F. Operación y recuperación | Alarmas de API desplegadas y en `OK`: al menos 3 respuestas 5xx en 5 minutos y más de 60 peticiones en 15 minutos. Suscripción SNS al mismo buzón de contacto confirmada; el propietario confirmó recepción de la notificación TEST. El runbook describe la reversión por PR. | Probar de forma controlada el disparo de alarmas: la prueba SNS verificó el canal de correo, no los umbrales. Añadir monitoreo de disponibilidad, rebotes/quejas y gasto; definir responsables y ensayar reversión. Las alarmas de API no acreditan entrega final de SES. |
+| G. Campaña | [Borrador Search en español](seo-analytics.md#primera-campaña-propuesta-pendiente-de-cuenta-y-presupuesto) con grupos, palabras, negativas y textos. No hay anuncios creados ni gasto autorizado. | Confirmar cuenta, presupuesto mensual y ubicaciones; verificar integración y consentimiento específicos de Ads. GA4 por sí solo no acredita atribución publicitaria. |
 
 ### Selección de idioma actual
 
-`?lang=es` abre español; `?lang=en`, un valor no reconocido o la ausencia del parámetro abren inglés. El selector ES/EN cambia el idioma y actualiza la URL. No consulta el idioma del navegador ni guarda una preferencia entre visitas sin ese parámetro.
-
-La detección del navegador sería una mejora adicional: el plan original exige equivalencia ES/EN, pero no define detección automática. Una política posible es respetar primero el parámetro explícito, después una elección guardada y finalmente el idioma del navegador, con español como fallback para el mercado objetivo. No se implementa esa política en esta limpieza visual.
+Español en `/`, inglés en `/en/`, según la elección del propietario. El selector usa enlaces reales y conserva el borrador en memoria al cambiar de idioma. Los enlaces antiguos `?lang=es` / `?lang=en` se reconocen y tienen reglas 301 hacia las rutas canónicas. No se aplica detección automática del navegador ni se guarda una preferencia de idioma.
 
 ### Prioridad de trabajo
 
-1. Habilitar contacto real y publicar su aviso de privacidad.
-2. Resolver idioma inicial y SEO bilingüe; finalizar la revisión visual y de accesibilidad.
-3. Completar cabeceras, CI obligatorio, monitoreo y recuperación.
-4. Integrar GA4 con consentimiento y comprobar las conversiones reales.
-5. Iniciar la campaña aprobada cuando el recorrido de contacto esté verificado.
+1. Comprobar Reply-To y el formulario en móvil. Publicar el aviso de privacidad con datos aprobados; el canal de correo para alertas ya está verificado.
+2. Resolver las alertas de dependencias, priorizando las críticas/altas de la cadena de herramientas. Añadir cabeceras de seguridad compatibles con Turnstile y el endpoint; completar accesibilidad y rendimiento.
+3. Crear GA4, activar la integración de consentimiento ya implementada y comprobar eventos reales. Verificar Search Console y enviar el sitemap; el idioma inicial y el SEO técnico bilingüe ya están resueltos.
+4. Completar monitoreo de disponibilidad, rebotes/quejas, presupuesto y recuperación. Revisar por separado la actualización mayor de TypeScript del [PR #11](https://github.com/craguilar/mac-web/pull/11); sigue pendiente de fusión al 19 de noviembre.
+5. Definir y comprobar atribución de Ads por separado; confirmar cuenta, ubicaciones y presupuesto del borrador Search.
+6. Iniciar la campaña aprobada cuando el recorrido de contacto y su medición estén verificados.
 
 
 ## A. Integración y verificación local
 
 Usar el `main` vigente como base y reutilizar los módulos integrados de #1 y #2. Resolver incompatibilidades y probar los cambios juntos antes de fusionar. Esta etapa puede completarse sin credenciales AWS ni despliegues. Conservar el trabajo local y el historial de las ramas durante la integración.
 
-Desde la raíz del repositorio, con Node.js 24 para reproducir el entorno de CI, ejecutar las comprobaciones en cada candidato y en la combinación. La versión de referencia carece de dependencias npm y de archivo de bloqueo.
+Desde la raíz del repositorio, con Node.js 24 para reproducir el entorno de CI, instalar las dependencias del lockfile y ejecutar las comprobaciones en cada candidato y en la combinación.
 
 ```sh
+npm ci
+npm run check
 npm test
 npm run build
 git diff --check
 ```
 
-Para la inspección en navegador se puede servir `dist/` con `python3 -m http.server 8000 --directory dist` y abrir `http://localhost:8000/?lang=es` y `http://localhost:8000/?lang=en`.
+Para la inspección en navegador se puede servir `dist/` con `python3 -m http.server 8000 --directory dist` y abrir `http://localhost:8000/` y `http://localhost:8000/en/`.
 
 **Aceptación.** Registrar los SHA de base y candidatos, las pruebas, el build y las funciones que siguen desactivadas. Contrastar la oferta del README con los textos de servicios aprobados. Actualizar las indicaciones de prototipo cuando se haya verificado la función correspondiente.
 
@@ -102,13 +104,13 @@ La [guía de despliegue](launch-runbook.md) detalla el endpoint, configuración,
 
 ## D. Analítica con consentimiento
 
-La activación requiere la propiedad GA4, acceso, ID de medición real y lista exacta de hosts HTTPS de producción. Conectar la política y el controlador de #1 a controles ES/EN para aceptar, rechazar y retirar el consentimiento. Rechazar debe ser tan sencillo como aceptar. El contacto debe funcionar en cualquier estado de consentimiento.
+La activación requiere la propiedad GA4, acceso, ID de medición real y lista exacta de hosts HTTPS de producción. Los controles ES/EN para aceptar, rechazar y retirar ya están implementados; seguir la [guía de activación](seo-analytics.md#crear-y-conectar-ga4) y verificar su comportamiento real. Rechazar debe ser tan sencillo como aceptar. El contacto debe funcionar en cualquier estado de consentimiento.
 
 | Condición | Resultado verificable en el navegador |
 | --- | --- |
 | Perfil nuevo, decisión pendiente o rechazo | Cero solicitudes a Google. |
 | Desarrollo, vista previa de PR o localhost | Seguimiento desactivado, incluso si existe una preferencia de aceptación. |
-| Aceptación en un host autorizado | El adaptador real transmite solo `contact_open`, `service_view` y `language_change` con parámetros enumerados. Revisar la configuración automática y el referente para excluir datos personales, campos libres, consultas y fragmentos de URL. |
+| Aceptación en un host autorizado | El adaptador transmite `page_view`, `contact_open`, `language_change` y `generate_lead` confirmado, con parámetros enumerados. `service_view` existe en la política pero no está conectado a la interfaz. Revisar la configuración automática y el referente para excluir datos personales, campos libres, consultas y fragmentos de URL. |
 | Retirada durante la carga o con eventos pendientes | Cancelar cargas, descartar colas, detener eventos y limpiar las cookies aplicables. Guardar la preferencia con su versión y respetarla al recargar. |
 | Vista previa, clic, error o reintento de contacto | Ninguna conversión por estas acciones. Incorporar `generate_lead` solo tras verificar el envío real de la sección C, una vez por envío aceptado y con consentimiento vigente. |
 
@@ -118,7 +120,7 @@ La activación requiere la propiedad GA4, acceso, ID de medición real y lista e
 
 | Área | Comprobación de aceptación |
 | --- | --- |
-| SEO bilingüe | Comprobar título, descripción, canonical, hreflang, sitemap y robots para el dominio confirmado. Resolver los metadatos iniciales en inglés y comprobar la indexación del contenido generado con JavaScript en ambos idiomas. Mantener la arquitectura estática salvo necesidad demostrada. |
+| SEO bilingüe | Comprobar título, descripción, canonical, hreflang, sitemap y robots para el dominio confirmado. Verificar los metadatos y el contenido ya prerenderizados en ambos idiomas y comprobar su indexación. Mantener la arquitectura estática salvo necesidad demostrada. |
 | Alojamiento y seguridad | Verificar las cabeceras de seguridad, la CSP y la caché con las fuentes, SVG y formulario reales. Evitar caché prolongada con `immutable` en recursos sin hash. Conservar los errores para rutas inexistentes y excluir una reescritura global a HTTP 200. |
 | Interacción y accesibilidad | Probar ES/EN a 320, 390, 768 y 1440 px, Safari/iOS y Chrome/Android. Revisar teclado, foco, contraste, orden de lectura y movimiento reducido. Ejercitar volver/avanzar, cambio de idioma, edición, cierre, doble clic, borrado/deshacer y fallo de red. |
 | Artefacto y operación | Comprobar enlaces, recursos, licencias y rendimiento móvil. Inspeccionar `dist/` para descartar secretos y archivos privados. Definir monitoreo de disponibilidad y errores, alertas de gasto y riesgos residuales. |
@@ -138,7 +140,7 @@ El único destino de publicación es `main`. Cada push inicia un build mediante 
 
 ## G. Campaña posterior al lanzamiento
 
-Confirmar objetivo, audiencia de Ciudad de México y Chiapas, oferta, cuenta publicitaria y presupuesto. Preparar anuncios y página de destino coherentes con la oferta, parámetros UTM sin datos personales y conversiones basadas en envíos reales. El piloto requiere aprobación expresa de campaña y gasto.
+Confirmar objetivo, audiencia de Ciudad de México y Chiapas, oferta, cuenta publicitaria y presupuesto. Preparar anuncios y página de destino coherentes con la oferta, parámetros UTM sin datos personales y conversiones basadas en envíos reales. El piloto requiere aprobación expresa de campaña y gasto. La implementación actual deniega consentimiento publicitario y elimina parámetros de campaña/clic de los eventos; preparar y probar esa atribución por separado antes de optimizar por conversiones.
 
 **Aceptación.** El informe del piloto relaciona inversión, conversiones verificadas, calidad de las consultas y costo. El remarketing queda desactivado por defecto y los clics por sí solos no se contabilizan como ventas.
 

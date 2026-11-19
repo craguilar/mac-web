@@ -59,7 +59,7 @@ La versión actual incorpora textos de servicios más concretos, contenido visib
 - Los borradores permanecen en memoria del navegador. Al enviar, AWS procesa el mensaje y SES lo entrega al buzón configurado; no se crea una base de datos ni se registran cuerpos o direcciones en los logs de la aplicación.
 - El formulario incluye una explicación ES/EN de finalidad y proveedores. Sigue pendiente el aviso completo de privacidad revisado, con datos reales del responsable y conservación.
 - Google Analytics está desactivado por defecto; con configuración explícita usa consentimiento básico. La elección puede guardarse localmente y las cookies propias de analítica aparecen solo al aceptar. No hay cuentas de visitantes ni autorespuestas.
-- Antes de habilitar producción: completar el bootstrap de CDK, verificar identidad SES, revisar privacidad y comprobar recepción y Reply-To con un envío autorizado. La [guía de despliegue](docs/launch-runbook.md) contiene los pasos y límites operativos.
+- Producción comprobada el 19 de noviembre de 2026: job 12 de Amplify correcto, SEO bilingüe publicado y recepción real del contacto confirmada por el propietario tras el job 11. La suscripción de alertas al buzón de contacto está confirmada y el propietario recibió la notificación TEST. Siguen pendientes Reply-To, el aviso completo de privacidad y la revisión móvil. La [guía de despliegue](docs/launch-runbook.md) contiene los pasos y límites operativos; el [plan actualizado](docs/PROJECT_PLAN.md) distingue lo verificado de lo pendiente.
 - Siguen pendientes cabeceras de seguridad, verificación de Search Console/indexación y revisión completa de accesibilidad/dispositivos del plan original. El SEO técnico bilingüe ya está implementado.
 
 ## Licencias

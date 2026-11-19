@@ -2,28 +2,27 @@
 
 ## Estado de esta propuesta
 
-El envío de contacto está implementado con Amplify Gen 2 y SES; requiere despliegue y prueba de recepción. Google Analytics sigue desconectado. `analytics-policy.js` es una política pura, probada y **no incluida en index.html**; no instala etiquetas, cookies ni almacena decisiones. No representa una integración terminada. Una respuesta exitosa de SES no equivale por sí sola a recepción en el buzón.
+Al 19 de noviembre de 2026, el contacto está desplegado con Amplify Gen 2 y SES; el propietario confirmó recepción desde el formulario real después del job 11. Reply-To y la matriz de dispositivos siguen pendientes de comprobación. La integración de consentimiento/GA4 del PR #16 está publicada pero la colección sigue desactivada: falta crear la propiedad y conectar su ID. Ya existen controles ES/EN, almacenamiento de la elección y un adaptador aislado que carga Google solo tras aceptar. Las pruebas de DOM/proveedor simulado no acreditan recepción en GA4; ver la [guía de activación](seo-analytics.md). La recepción de esta prueba tampoco garantiza la entrega de consultas futuras: falta seguimiento de rebotes y quejas.
 
 ## Decisiones y datos pendientes
 
 | Área | Necesario para activar | Criterio de salida |
 | --- | --- | --- |
 | GA4 | Propiedad de Carlos, ID real y dominios de producción confirmados | Etiqueta solo después de consentimiento explícito y solo en producción |
-| Contacto | Destinatario y canal AWS confirmados; falta recepción real, responsable y plazo de respuesta | Envío de prueba recibido y respuesta visible solo tras éxito del servidor |
+| Contacto | Despliegue y recepción real confirmados; falta comprobar Reply-To, responsable y plazo de respuesta | Mantener entrega comprobada y éxito solo tras respuesta del servidor; completar validación móvil |
 | Privacidad | Identidad y contacto del responsable, finalidades, proveedores, conservación y mecanismo de derechos confirmados | Aviso revisado y enlazado en español e inglés |
-| Infraestructura | Cuenta/región AWS y arquitectura del envío aprobadas | Secretos solo del lado servidor; controles contra abuso y monitoreo |
+| Infraestructura | Backend y controles contra abuso desplegados; alarmas de API activas, suscripción SNS confirmada y recepción de la notificación TEST confirmada por el propietario | Probar el disparo controlado de alarmas; completar monitoreo de disponibilidad, rebotes y gasto |
 
 No se inventarán correo, razón social, domicilio, periodos de conservación ni texto legal. No se habilitarán Ads, remarketing o datos proporcionados por usuarios por defecto.
 
-## Analítica: integración siguiente
+## Analítica: activación siguiente
 
-1. Implementar consentimiento **básico**: no descargar Google ni enviar solicitudes antes de aceptar. Rechazar debe ser tan sencillo como aceptar, sin impedir navegar o contactar.
-2. Guardar preferencia/versionado únicamente al implementar la interfaz real. Añadir un control permanente para retirar consentimiento y probar eliminación de cookies propias aplicables, bloqueo de eventos y comportamiento tras recargar.
-3. Usar la política de este PR como condición necesaria, no suficiente: aún faltan interfaz, carga de etiqueta, gestión de revocación y pruebas en navegador.
-4. Desactivar page_view automático y medición mejorada que recopile URLs/referrers o interacciones no auditadas. Enviar solo rutas canónicas sin consultas ni fragmentos, si se añaden vistas de página después.
-5. Permitir eventos enumerados (`contact_open`, `language_change`, `service_view`) sin campos libres. El vocabulario de servicios deberá mapearse a los servicios definitivos, no copiar sus etiquetas libres.
-6. No enviar nombres, correo, teléfono, texto del mensaje ni parámetros de URL. `generate_lead` permanece excluido hasta implementar envío real verificado, sin duplicados.
-7. No medir previews de Amplify, localhost ni ramas de desarrollo. El dominio exacto debe estar en lista permitida; un ID válido no basta.
+1. Crear la propiedad GA4 y flujo Web de `https://mactecnologia.com.mx`; desactivar Medición mejorada completa. Compartir solo el ID público `G-…`.
+2. Configurar `GA4_MEASUREMENT_ID` y `GA4_ENABLED=true` en Amplify y publicar; los builds locales permanecen desactivados.
+3. Verificar en un navegador real que pendiente/rechazo no carga Google, aceptar lo carga y retirar elimina el contexto, descarta colas y limpia cookies propias. La preferencia versionada dura hasta 180 días; sin almacenamiento la elección es solo para la visita.
+4. Contrastar `page_view`, `contact_open`, `language_change` y `generate_lead` con Realtime. El último solo se emite tras aceptación de la API/SES, con consentimiento, y no acredita una venta ni entrega final.
+5. Confirmar que no se transmiten datos del formulario, consultas, fragmentos ni referentes; mantener señales y personalización publicitarias desactivadas. `service_view` está permitido por la política pero no conectado a la interfaz.
+6. Revisar y publicar el aviso completo con los datos reales del responsable y las finalidades/proveedores de analítica. Preparar cualquier integración Ads como trabajo separado, con consentimiento y atribución verificados.
 
 ## Contacto: contrato y verificación
 
@@ -54,6 +53,8 @@ Este documento es un checklist técnico, no un aviso de privacidad ni asesoría 
 
 ## Componentes implementados en el seguimiento
 
-- `consent-controller.js`: máquina de estado sin almacenamiento ni carga de terceros; requiere un adaptador auditado, no incluido. Inicia solo con opt-in/configuración válida, filtra eventos y detiene envío al retirar consentimiento. El adaptador debe descartar colas, cancelar cargas pendientes y limpiar cookies cuando corresponda.
-- `contact-validation.js`: contrato compartido por formulario y endpoint: nombre obligatorio (160), correo obligatorio (254), mensaje obligatorio (3000), empresa opcional (160), tema enumerado opcional e idioma ES/EN. Recorta espacios, descarta campos desconocidos y rechaza controles/inyección de cabeceras. No sustituye validación de servidor, escape de salida, controles de abuso ni verificación de entrega.
-- El validador de contacto está enlazado a la página y se reutiliza en Lambda. El controlador de consentimiento permanece desconectado. Las pruebas usan adaptadores simulados, sin Google ni correo real.
+- `consent-controller.ts` y `analytics-policy.ts`: estado y filtrado de eventos permitidos; el rechazo o una configuración inválida impiden colección.
+- `analytics-ui.ts` y `consent-storage.ts`: aceptar/rechazar/retirar en ES/EN, elección versionada y revocación entre pestañas.
+- `analytics-adapter.ts` y `analytics-frame.ts`: contexto separado, carga de Google tras consentimiento, descarte de eventos pendientes y eliminación de cookies propias al retirar.
+- `contact-validation.ts`: contrato compartido por formulario y Lambda: nombre (160), correo (254), mensaje (3000), empresa opcional (160), tema enumerado e idioma ES/EN. No sustituye controles de servidor ni verificación de entrega.
+- Las pruebas automatizadas usan un DOM y proveedor simulados, sin Google ni correo real. La recepción real del contacto fue confirmada por el propietario; GA4 y presentación móvil siguen pendientes de verificación.
