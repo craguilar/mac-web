@@ -1,49 +1,65 @@
 # Seguridad del contacto público
 
-El código y la clave pública de Turnstile pueden estar en un repositorio público. La autorización para enviar correo se decide en Lambda: destinatario/remitente fijos, validación de campos y token verificado con Cloudflare. Origin/CORS y el honeypot son controles adicionales; no son autenticación.
+El formulario usa API Gateway, Lambda y SES; Turnstile valida cada intento en el servidor. La clave pública puede estar en el sitio. El secreto, el destinatario y las credenciales AWS se configuran fuera del repositorio. CORS y el honeypot no son autenticación.
 
-## Activar Turnstile
+## Activar el formulario en Amplify
 
-1. Crear un widget **Managed** en [Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile). Permitir solamente `mactecnologia.com.mx` y `www.mactecnologia.com.mx`. No es necesario mover DNS ni usar el CDN de Cloudflare. No añadir localhost, previews ni comodines al widget de producción.
-2. En las variables de la rama `main` de Amplify, configurar `TURNSTILE_SITE_KEY` con la clave **pública**. El build rechaza valores vacíos y claves de prueba.
-3. Guardar `TURNSTILE_SECRET_KEY` en **Secrets de Amplify**, para `main`. No es una variable de Hosting normal, una variable de GitHub ni un archivo `.env` del repositorio. La función obtiene el secreto desde SSM en ejecución mediante `secret('TURNSTILE_SECRET_KEY')`.
-4. Conservar `CONTACT_EMAIL` como el destinatario privado confirmado. Configurar `CONTACT_API_ID` con el output de la pila de requisitos. `AWS_APP_ID` lo proporciona Amplify.
-5. Mantener `CONTACT_ENABLED=false` hasta completar las claves y la revisión del aviso de privacidad. Para habilitar envíos, cambiarlo a `true` y desplegar el PR revisado. Falta de configuración, fallos de Cloudflare o tokens inválidos nunca permiten enviar correo.
-6. Verificar un envío real autorizado, recepción y Reply-To después del despliegue. Las pruebas automáticas usan dobles de Cloudflare/SES y no demuestran recepción en el buzón.
+Completar primero los [requisitos AWS](cdk-bootstrap-runbook.md) y el [despliegue](launch-runbook.md).
 
-El servidor exige `success=true`, hostname coincidente con el origen permitido y `action=contact`. Los tokens caducan y el navegador obtiene uno nuevo después de cada intento; cambiar de idioma elimina el widget anterior sin perder el borrador. No se guardan tokens ni mensajes en almacenamiento del navegador. La verificación no transmite el texto de la consulta a Cloudflare. La información de proveedores del formulario sigue sin reemplazar el aviso de privacidad completo.
+1. Crear un widget **Managed** en [Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile), limitado a `mactecnologia.com.mx` y `www.mactecnologia.com.mx`. No requiere cambiar DNS. No añadir localhost, previews ni comodines.
+2. Configurar la rama `main` de Amplify:
 
-Referencias: [widget](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/), [verificación del servidor](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/), [secretos de Amplify](https://docs.amplify.aws/javascript/build-a-backend/functions/environment-variables-and-secrets/).
+   | Nombre | Ubicación | Valor |
+   | --- | --- | --- |
+   | `TURNSTILE_SITE_KEY` | Variables de entorno | Clave pública de producción |
+   | `TURNSTILE_SECRET_KEY` | Secrets | Secreto del widget |
+   | `CONTACT_EMAIL` | Variables de entorno | Buzón receptor privado |
+   | `CONTACT_API_ID` | Variables de entorno | Output `ContactApiId` de los requisitos AWS |
+   | `CONTACT_ENABLED` | Variables de entorno | `false` durante la preparación |
+
+   `AWS_APP_ID` lo proporciona Amplify. No copiar secretos a GitHub, `.env` ni archivos públicos.
+3. Completar el aviso de privacidad y desplegar el backend y el sitio con envíos desactivados. **El build de producción exige una clave pública válida incluso con `CONTACT_ENABLED=false`.**
+4. Confirmar las alertas descritas abajo. Para abrir el formulario, cambiar `CONTACT_ENABLED=true`, volver a desplegar y verificar un envío autorizado, recepción y Reply-To. Las pruebas automáticas no envían correo real.
+
+Lambda exige un token válido con hostname permitido y `action=contact`. La falta de configuración, una verificación fallida o los envíos desactivados impiden llamar a SES. Remitente y destinatario son fijos; el correo del visitante solo se usa como Reply-To. No se guardan mensajes ni tokens en almacenamiento del navegador ni se registran en logs.
 
 ## Proteger GitHub
 
-Desde PowerShell, autenticar la cuenta propietaria. Estos comandos conservan el protocolo SSH existente y omiten crear/subir claves SSH; seleccionar `craguilar` en el navegador. El permiso `workflow` permite publicar los cambios de CI:
+Solo `craguilar` puede fusionar hacia `main`, aunque otra persona apruebe el PR. Cuatro reglas mantienen separadas las excepciones:
+
+| Regla | Control |
+| --- | --- |
+| Only craguilar may merge main | Solo la cuenta exacta del propietario puede actualizar la rama mediante PR |
+| Main safety without bypass | PR obligatorio, conversaciones resueltas, sin borrado ni force pushes; sin excepciones |
+| Required CI for main | Rama actualizada y check `Test and build (Node 24)` de GitHub Actions; sin excepciones |
+| Main enforced | Revisión de CODEOWNERS, aprobaciones caducadas al cambiar código y revisión del último push |
+
+El propietario tiene una excepción **solo de revisión y solo mediante PR** para poder fusionar sus propios cambios. No evita CI, conversaciones pendientes ni las otras protecciones. `CODEOWNERS` asigna todos los archivos a `craguilar` cuando este archivo está en la rama base. Auto-merge está desactivado. El propietario sigue pudiendo administrar las reglas; proteger su cuenta con MFA/passkey y sus tokens es esencial.
+
+Desde la raíz del repositorio, con Node 24 y `gh` autenticado como `craguilar`:
 
 ```powershell
-gh auth login --hostname github.com --web --git-protocol ssh --skip-ssh-key --scopes workflow
+node scripts/harden-github.ts           # Vista previa
+node scripts/harden-github.ts --apply   # Aplicar y comprobar
+node scripts/harden-github.ts --verify  # Comprobar sin cambios
+```
+
+El script comprueba identidad, propiedad, rama y permisos antes de escribir. También habilita alertas y correcciones de Dependabot, reportes privados de vulnerabilidades, secret scanning, push protection y CodeQL para JavaScript/TypeScript y Actions. CodeQL analiza de forma asíncrona; revisar sus hallazgos en Security. Es un análisis adicional, no un requisito de fusión independiente. `.github/dependabot.yml` programa actualizaciones semanales; sus PRs requieren CI y fusión del propietario.
+
+Actions tiene permisos de lectura por defecto, no puede aprobar PRs, exige aprobación para ejecuciones de colaboradores externos y permite únicamente acciones de GitHub fijadas a SHA completo. Revisar cambios de workflows antes de autorizar su ejecución: pueden solicitar permisos adicionales. No ejecutar código de forks mediante `pull_request_target` ni guardar credenciales AWS de producción en Actions.
+
+Si un paso falla, revisar lo ya aplicado antes de repetir. Si CodeQL sigue configurándose, esperar a que termine **CodeQL Setup** y ejecutar `--verify`. Para cambiar la cuenta activa sin modificar el protocolo Git:
+
+```powershell
 gh auth switch --hostname github.com --user craguilar
 gh api user --jq .login
 ```
 
-Desde la raíz del checkout de este PR, revisar y aplicar:
-
-```powershell
-node scripts/harden-github.ts
-node scripts/harden-github.ts --apply
-git config --local user.email "6916098+craguilar@users.noreply.github.com"
-```
-
-El script exige `craguilar` con permisos de administración. Conserva las restricciones y excepciones de revisión existentes, descarta aprobaciones antiguas, exige resolver conversaciones y crea una regla de CI para `main` sin excepciones. Vincula el check al ID observado de GitHub Actions. Activa secret scanning y push protection, deja el token de Actions en lectura y exige aprobación para ejecutar workflows de colaboradores externos. No fusiona PRs ni cambia Amplify. Si un paso falla, informa el error; revisar lo ya aplicado y volver a ejecutar es seguro.
-
-`CODEOWNERS` identifica los archivos de despliegue para revisión del propietario; por sí solo no impone una aprobación adicional. Los workflows permanecen sin credenciales AWS, con acciones fijadas por SHA y checkout sin credenciales persistentes. No introducir `pull_request_target` que ejecute código de forks.
-
-Activar MFA/passkey en la cuenta GitHub y en los accesos AWS/Cloudflare. Esa configuración personal requiere la sesión del propietario. La dirección noreply afecta commits futuros; no elimina una dirección ya publicada en el historial. No reescribir el historial como parte de este cambio.
-
 ## Alertas y límites
 
-La función admite dos ejecuciones concurrentes, 128 MiB y diez segundos. API Gateway limita globalmente a 0.1 solicitudes/segundo, ráfaga 2. Se crean dos alarmas: más de 60 solicitudes en 15 minutos y al menos 3 respuestas 5xx en cinco minutos. Publican en `mac-web-<APP_ID>-contact-alerts`.
+Lambda admite dos ejecuciones concurrentes, 128 MiB y diez segundos. API Gateway aplica un límite global de mejor esfuerzo de 0.1 solicitudes/segundo y ráfaga 2; no es un límite por visitante. El backend crea alarmas de más de 60 solicitudes en 15 minutos y al menos 3 respuestas 5xx en cinco minutos.
 
-Después de desplegar el backend, suscribir el correo operativo desde SNS y **confirmar el correo de suscripción**. Alternativa en CloudShell (Bash):
+Tras desplegar el backend, suscribir el correo operativo al tema SNS `mac-web-<APP_ID>-contact-alerts` y **confirmar el correo de suscripción**. En CloudShell:
 
 ```bash
 REGION=us-east-2
@@ -56,11 +72,11 @@ aws sns subscribe --region "$REGION" \
 unset ALERT_EMAIL
 ```
 
-Crear alarmas no confirma suscripciones ni envía correos de prueba. Revisar el estado `Confirmed` antes de contar con notificaciones. Las alertas son de tráfico/fallos, no un límite de gasto. El throttle es de mejor esfuerzo; solicitudes rechazadas y otros servicios pueden seguir generando cargos. Configurar además un presupuesto AWS según el monto elegido por el propietario. Revisar reputación, rebotes y quejas de SES; estas alarmas no los sustituyen.
+Las alarmas no imponen un límite de gasto ni sustituyen el seguimiento de rebotes y quejas de SES. Configurar un presupuesto AWS y confirmar que las alertas llegan al responsable.
 
-## Detener envíos
+## Detener y restaurar envíos
 
-Identificar en Lambda la función física `contactlambda` de esta aplicación y copiar su nombre exacto. En CloudShell:
+Copiar el nombre físico de la función `contactlambda` desde Lambda. Para detener nuevas invocaciones en CloudShell:
 
 ```bash
 REGION=us-east-2
@@ -69,15 +85,8 @@ aws lambda put-function-concurrency --region "$REGION" \
   --function-name "$FUNCTION_NAME" --reserved-concurrent-executions 0
 ```
 
-Esto bloquea nuevas invocaciones; las que ya estaban en curso pueden terminar. Configurar también `CONTACT_ENABLED=false` en Amplify y desplegar para mantener el envío desactivado. Para restaurar después de reparar y verificar claves, usar `CONTACT_ENABLED=true`, desplegar y ejecutar:
+Las invocaciones en curso pueden terminar. Configurar también `CONTACT_ENABLED=false` y desplegar: un despliegue puede restaurar la concurrencia definida en infraestructura. Tras corregir el problema, volver a desplegar con `CONTACT_ENABLED=true` y restaurar concurrencia 2 si sigue en cero. No borrar SES, DNS ni CDKToolkit.
 
-```bash
-aws lambda put-function-concurrency --region "$REGION" \
-  --function-name "$FUNCTION_NAME" --reserved-concurrent-executions 2
-```
+Turnstile reduce abuso, pero no garantiza mensajes legítimos y su rechazo de tokens reutilizados es eventualmente consistente. Un reintento manual tras un timeout puede duplicar un correo; SES aceptado tampoco garantiza llegada al buzón.
 
-No deshabilitar SES para toda la cuenta ni borrar la identidad, DNS o CDKToolkit. No registrar cuerpos, tokens, secretos, correos ni respuestas completas del proveedor durante el diagnóstico.
-
-## Alcance restante
-
-Turnstile reduce abuso automatizado, pero no garantiza que todo mensaje sea legítimo. Su detección de reutilización es eventualmente consistente; un token reutilizado muy rápido puede validarse más de una vez. Tampoco hay deduplicación persistente de SES: un reintento manual después de un timeout ambiguo puede duplicar un correo. Se conserva la arquitectura mínima, sin base de datos, cuentas de visitantes ni respuestas automáticas.
+Referencias: [verificación de Turnstile](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/), [secretos de Amplify](https://docs.amplify.aws/javascript/deploy-and-host/amplify-hosting/secrets-and-vars/), [reglas de GitHub](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets).

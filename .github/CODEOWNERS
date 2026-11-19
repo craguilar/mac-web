@@ -1,7 +1,2 @@
-# Changes to deployment and security code need owner attention.
-/.github/ @craguilar
-/amplify/ @craguilar
-/infra/ @craguilar
-/scripts/ @craguilar
-/package.json @craguilar
-/package-lock.json @craguilar
+# Every change, including this ownership file, belongs to the repository owner.
+* @craguilar
