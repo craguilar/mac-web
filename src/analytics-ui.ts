@@ -5,7 +5,7 @@ import {readConsent,saveConsent,type ConsentChoice,type ConsentStorage} from './
 import type {Language} from './contact-validation.ts';
 
 const copy={
- es:{title:'Analítica opcional',description:'Si aceptas, usamos Google Analytics para mejorar el sitio. No enviamos tu nombre, correo ni mensaje a Google. Puedes cambiar de opinión cuando quieras.',accept:'Aceptar analítica',reject:'Rechazar analítica',preferences:'Preferencias de analítica',allowed:'Analítica permitida.',denied:'Analítica desactivada.',close:'Cerrar',temporary:'No pudimos guardar tu elección; solo se aplicará a esta visita.'},
+ es:{title:'Analítica opcional',description:'Si aceptas, usamos Google Analytics para mejorar el sitio. No enviamos tu nombre, correo ni mensaje a Google. Puedes cambiar de opinión cuando quieras.',accept:'Aceptar',reject:'Rechazar',preferences:'Preferencias de analítica',allowed:'Analítica permitida.',denied:'Analítica desactivada.',close:'Cerrar',temporary:'No pudimos guardar tu elección; solo se aplicará a esta visita.'},
  en:{title:'Optional analytics',description:'With your permission, we use Google Analytics to improve this site. We don’t send your name, email address, or message to Google. You can change your mind at any time.',accept:'Accept analytics',reject:'Reject analytics',preferences:'Analytics preferences',allowed:'Analytics allowed.',denied:'Analytics disabled.',close:'Close',temporary:'Your choice could not be saved; it applies only to this visit.'}
 };
 export function createAnalyticsUi(initialLanguage:Language){
