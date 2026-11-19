@@ -23,7 +23,7 @@ for(const language of ['es','en'] as const){
   await page.locator('button[type="submit"]').tap();
   await expect(page.locator('[name="name"]')).toHaveAttribute('aria-invalid','true');
   await expect(page.locator('[name="name"]')).toBeFocused();
-  await expect(page.locator('.contact-challenge iframe')).toHaveCount(1);
+  await expect.poll(()=>page.frames().some(frame=>frame.url().startsWith('https://challenges.cloudflare.com/')),{timeout:15000}).toBe(true);
   await page.screenshot({path:testInfo.outputPath('live-mobile-form.png')});
   expect(prohibited).toEqual([]);
  });
