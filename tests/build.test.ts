@@ -28,7 +28,7 @@ test('build bundles TypeScript and includes only public assets, config and licen
    ...filesUnder(path.join(root,'licenses')).map(file=>[path.join('licenses',file),path.join(root,'licenses',file)] as [string,string]),
    ['THIRD_PARTY_NOTICES.md',path.join(root,'THIRD_PARTY_NOTICES.md')]
   ]);
-  const expected=[...copied.keys(),path.join('assets','app.js'),path.join('assets','contact-config.js')].sort();
+  const expected=[...copied.keys(),'index.html',path.join('en','index.html'),'analytics.html','robots.txt','sitemap.xml',...['app.js','contact-config.js','analytics-config.js','analytics-frame.js'].map(file=>path.join('assets',file))].sort();
   assert.deepEqual(filesUnder(path.join(tmp,'dist')),expected,'No source, backend, maps or stale files may be published');
   for(const [file,source] of copied)assert.deepEqual(fs.readFileSync(path.join(tmp,'dist',file)),fs.readFileSync(source));
   const configFile=path.join(tmp,'dist/assets/contact-config.js');
@@ -51,8 +51,17 @@ test('build bundles TypeScript and includes only public assets, config and licen
   await assert.rejects(production({TURNSTILE_SITE_KEY:'1x00000000000000000000AA'}),/TURNSTILE_SITE_KEY/);
   await production();
   assert.deepEqual(readConfig(),{endpoint,siteKey});
+  const analyticsFile=path.join(tmp,'dist/assets/analytics-config.js');
+  assert.match(fs.readFileSync(analyticsFile,'utf8'),/"enabled":false/);
+  await assert.rejects(production({...env,GA4_ENABLED:'true'}),/GA4_MEASUREMENT_ID/);
+  await production({...env,GA4_ENABLED:'true',GA4_MEASUREMENT_ID:'G-ABC1234567'});
+  assert.match(fs.readFileSync(analyticsFile,'utf8'),/"enabled":true/);
+  assert.match(fs.readFileSync(analyticsFile,'utf8'),/G-ABC1234567/);
+  const sitemap=fs.readFileSync(path.join(tmp,'dist/sitemap.xml'),'utf8');
+  assert.equal((sitemap.match(/<loc>/g)||[]).length,2);
+  assert.doesNotMatch(sitemap,/analytics.html|\?lang=|www\.mactecnologia/);
   assert.deepEqual(filesUnder(path.join(tmp,'dist')),expected);
-  for(const file of ['assets/contact-config.js','assets/app.js'])assert.doesNotMatch(fs.readFileSync(path.join(tmp,'dist',file),'utf8'),/DO_NOT_PUBLISH/);
+  for(const file of filesUnder(path.join(tmp,'dist')).filter(file=>/\.(?:html|js|txt|xml)$/.test(file)))assert.doesNotMatch(fs.readFileSync(path.join(tmp,'dist',file),'utf8'),/DO_NOT_PUBLISH/);
   for(const [file,content] of inputs)assert.deepEqual(fs.readFileSync(path.join(tmp,file)),content,'Source must remain unchanged: '+file);
  }finally{fs.rmSync(tmp,{recursive:true,force:true});}
 });
