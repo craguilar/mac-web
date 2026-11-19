@@ -1,5 +1,6 @@
 """Security invariants for the owner-provisioned infrastructure (PyYAML from cfn-lint)."""
 from pathlib import Path
+from fnmatch import fnmatchcase
 import unittest
 import yaml
 def intrinsic(loader,tag,node):
@@ -64,6 +65,29 @@ class DeploymentSecurity(unittest.TestCase):
    self.assertEqual(statement['Action'],['iam:PassRole'])
    self.assertEqual(statement['Condition'],{'StringEquals':{'iam:PassedToService':service}})
    self.assertEqual(statement['Resource'],[{'Fn::Sub':expected[service]}])
+ def test_log_permissions_cover_generated_main_groups_without_cross_app_access(self):
+  substitutions={'AWS::Partition':'aws','AWS::Region':'us-east-2','AWS::AccountId':'123456789012','AmplifyAppId':'testapp'}
+  def resolve(resource):
+   value=resource if isinstance(resource,str) else resource['Fn::Sub']
+   for key,replacement in substitutions.items():value=value.replace('${'+key+'}',replacement)
+   return value
+  base='arn:aws:logs:us-east-2:123456789012:log-group:'
+  generated='amplify-testapp-main-branch-build-functionNested-hash-contactloggroup-hash'
+  allowed=[base+generated,base+'/aws/lambda/amplify-testapp-main-contact']
+  denied=[base+generated.replace('testapp','otherapp'),base+generated.replace('testapp','testappevil'),base+generated.replace('-main-','-dev-'),base+generated.replace('-main-','-pr-1-'),base+'/aws/lambda/unrelated',allowed[0].replace('123456789012','999999999999'),allowed[0].replace('us-east-2','us-west-2')]
+  cases={
+   'DeploymentExecutionPolicy':['logs:CreateLogGroup','logs:DeleteLogGroup','logs:PutRetentionPolicy','logs:TagResource'],
+   'RuntimeBoundary':['logs:CreateLogGroup','logs:CreateLogStream','logs:PutLogEvents']
+  }
+  for policy,actions in cases.items():
+   statements=self.prerequisites['Resources'][policy]['Properties']['PolicyDocument']['Statement']
+   for action in actions:
+    patterns=[resolve(r) for s in statements if s['Effect']=='Allow' and any(fnmatchcase(action,a) for a in s['Action']) for r in s['Resource']]
+    suffix=':log-stream:2026/11/19/test-stream' if action in ['logs:CreateLogStream','logs:PutLogEvents'] else ''
+    for resource in allowed:
+     with self.subTest(policy=policy,action=action,resource=resource):self.assertTrue(any(fnmatchcase(resource+suffix,p) for p in patterns))
+    for resource in denied:
+     with self.subTest(policy=policy,action=action,resource=resource):self.assertFalse(any(fnmatchcase(resource+suffix,p) for p in patterns))
  def test_runtime_cannot_administer_account_or_send_to_arbitrary_recipients(self):
   statements=self.prerequisites['Resources']['RuntimeBoundary']['Properties']['PolicyDocument']['Statement']
   self.assertFalse(any(a.startswith(('iam:','sts:','cloudformation:','s3:')) for s in statements for a in s['Action']))
