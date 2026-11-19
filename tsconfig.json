@@ -23,7 +23,9 @@
     "src/**/*.ts",
     "scripts/**/*.ts",
     "tests/**/*.ts",
-    "amplify/**/*.ts"
+    "amplify/**/*.ts",
+    "browser-tests/**/*.ts",
+    "playwright.config.ts"
   ],
   "exclude": [
     "node_modules",

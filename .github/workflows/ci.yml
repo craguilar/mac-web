@@ -18,7 +18,7 @@ jobs:
   validate:
     name: Test and build (Node 24)
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -35,6 +35,17 @@ jobs:
         run: npm run check
       - name: Run syntax and regression tests
         run: npm test
+      - name: Install mobile browser engines
+        run: npx playwright install --with-deps chromium webkit
+      - name: Check mobile form, consent and CSP in Chromium and WebKit
+        run: npm run test:browser
+      - name: Preserve browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mobile-browser-diagnostics
+          path: test-results/
+          retention-days: 7
       - name: Verify generated backend security
         env:
           CONTACT_EMAIL: owner@example.test
