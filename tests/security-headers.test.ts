@@ -19,7 +19,7 @@ test('hosting restricts executable content while permitting contact verification
  assert.deepEqual(policy.get('script-src'),["'self'",'https://challenges.cloudflare.com','https://www.googletagmanager.com']);
  assert.deepEqual(policy.get('frame-src'),["'self'",'https://challenges.cloudflare.com']);
  assert.deepEqual(policy.get('style-src'),["'self'"]);
- assert.ok(policy.get('connect-src')?.includes('https://mvxp0vhfuh.execute-api.us-east-2.amazonaws.com/contact'));
+ assert.ok(policy.get('connect-src')?.some(source=>source==='https://mvxp0vhfuh.execute-api.us-east-2.amazonaws.com/contact'));
  assert.ok(policy.get('connect-src')?.includes('https://*.google-analytics.com'));
  assert.ok(policy.get('connect-src')?.includes('https://*.google.com'));
  assert.ok(policy.has('upgrade-insecure-requests'));

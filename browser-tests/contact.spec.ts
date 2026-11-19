@@ -55,7 +55,7 @@ async function commands(page:Page){
 test.afterEach(async({page},testInfo)=>{
  if(testInfo.status===testInfo.expectedStatus)return;
  for(const frame of page.frames()){
-  if(!frame.url().startsWith(origin))continue;
+  if(new URL(frame.url()).origin!==origin)continue;
   console.log('Browser failure diagnostics',await frame.evaluate(()=>{
    const state=window as unknown as {messages:unknown[];violations:string[];macAnalyticsConfig:unknown;macAnalyticsLayer:unknown[]};
    return {url:location.href,ready:document.readyState,messages:state.messages,violations:state.violations,config:state.macAnalyticsConfig,queued:state.macAnalyticsLayer?.length};

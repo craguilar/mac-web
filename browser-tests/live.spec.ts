@@ -6,7 +6,7 @@ for(const language of ['es','en'] as const){
   await page.route('**/*',async route=>{
    const url=new URL(route.request().url());
    // A live smoke test must never send contact mail or analytics hits.
-   if(url.hostname.endsWith('.execute-api.us-east-2.amazonaws.com')||/google-analytics\.com|googletagmanager\.com|google\.com$/.test(url.hostname)){
+   if(url.hostname.endsWith('.execute-api.us-east-2.amazonaws.com')||['google-analytics.com','googletagmanager.com','google.com'].some(host=>url.hostname===host||url.hostname.endsWith('.'+host))){
     prohibited.push(route.request().url());return route.abort();
    }
    return route.continue();
@@ -23,7 +23,7 @@ for(const language of ['es','en'] as const){
   await page.locator('button[type="submit"]').tap();
   await expect(page.locator('[name="name"]')).toHaveAttribute('aria-invalid','true');
   await expect(page.locator('[name="name"]')).toBeFocused();
-  await expect.poll(()=>page.frames().some(frame=>frame.url().startsWith('https://challenges.cloudflare.com/')),{timeout:15000}).toBe(true);
+  await expect.poll(()=>page.frames().some(frame=>new URL(frame.url()).origin==='https://challenges.cloudflare.com'),{timeout:15000}).toBe(true);
   await page.screenshot({path:testInfo.outputPath('live-mobile-form.png')});
   expect(prohibited).toEqual([]);
  });
