@@ -16,7 +16,11 @@ npm run build
 python3 -m http.server 8000 --directory dist
 ```
 
-Abrir `http://localhost:8000/?lang=es` para español o `http://localhost:8000/?lang=en` para inglés. El selector de idioma también funciona dentro de la página. Los recursos usan rutas relativas, por lo que la carpeta `dist/` puede servirse desde la raíz o un subdirectorio.
+Abrir `http://localhost:8000/` para español o `http://localhost:8000/en/` para inglés. Los enlaces antiguos `?lang=es` / `?lang=en` se reconocen; en Amplify se redirigen a las rutas canónicas. Servir `dist/` desde la raíz: navegación, sitemap y analítica utilizan esas rutas.
+
+## SEO y analítica opcional
+
+El build genera HTML completo ES/EN, canonical/hreflang, metadatos e imágenes sociales, sitemap y robots. La [guía de SEO y analítica](docs/seo-analytics.md) documenta redirects, configuración GA4, validación y un borrador de campaña. Analytics permanece desactivado hasta configurar `GA4_MEASUREMENT_ID` y `GA4_ENABLED=true` en Amplify. Al activarlo, Google se carga únicamente después del consentimiento y puede desactivarse desde preferencias. La configuración de una campaña Ads y su atribución requieren trabajo y aprobación propios.
 
 ## Verificar
 
@@ -37,7 +41,7 @@ La versión actual incorpora textos de servicios más concretos, contenido visib
 
 ## Estructura
 
-- `public/index.html`: documento, metadatos y carga de recursos.
+- `src/seo-document.ts` y `src/render-site.ts`: HTML bilingüe y componentes compartidos entre build y navegador.
 - `src/content.ts`: textos en español e inglés.
 - `src/app.ts`: navegación, idioma, ilustración y estados de envío del formulario.
 - `src/contact-*.ts`: contrato compartido, validación, cliente HTTP y verificación Turnstile.
@@ -54,7 +58,7 @@ La versión actual incorpora textos de servicios más concretos, contenido visib
 
 - Los borradores permanecen en memoria del navegador. Al enviar, AWS procesa el mensaje y SES lo entrega al buzón configurado; no se crea una base de datos ni se registran cuerpos o direcciones en los logs de la aplicación.
 - El formulario incluye una explicación ES/EN de finalidad y proveedores. Sigue pendiente el aviso completo de privacidad revisado, con datos reales del responsable y conservación.
-- No se activa Google Analytics ni se añaden cookies, cuentas de visitantes o autorespuestas.
+- Google Analytics está desactivado por defecto; con configuración explícita usa consentimiento básico. La elección puede guardarse localmente y las cookies propias de analítica aparecen solo al aceptar. No hay cuentas de visitantes ni autorespuestas.
 - Antes de habilitar producción: completar el bootstrap de CDK, verificar identidad SES, revisar privacidad y comprobar recepción y Reply-To con un envío autorizado. La [guía de despliegue](docs/launch-runbook.md) contiene los pasos y límites operativos.
 - Siguen pendientes cabeceras de seguridad, SEO y revisión completa de accesibilidad/dispositivos del plan original.
 
