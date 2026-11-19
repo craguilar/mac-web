@@ -76,6 +76,14 @@ Referencias: [rol de Amplify](https://docs.aws.amazon.com/amplify/latest/usergui
 
 La publicación se sigue en Amplify; GitHub Actions muestra la validación. El workflow anterior **Deploy to AWS Amplify** deja de ejecutarse al fusionar su eliminación. Su historial anterior puede seguir apareciendo en Actions.
 
+### Error «Unable to assume specified IAM Role»
+
+Si aparece antes de clonar el repositorio o ejecutar `amplify.yml`, comprobar el rol de servicio configurado en la aplicación y su política de confianza. Amplify envía el ARN de la **rama**, no el de la aplicación, como `aws:SourceArn`. Una condición `ArnEquals` que termine en `apps/<APP_ID>` rechaza el build de `main`.
+
+`infra/contact-prerequisites.yaml` exige `arn:<PARTITION>:amplify:<REGION>:<ACCOUNT_ID>:apps/<APP_ID>/branches/main`, conserva `aws:SourceAccount` y confía en `amplify.amazonaws.com`. Preparar un change set de la pila existente con los valores previos de sus parámetros; verificar que solo modifique `AmplifyBackendRole.AssumeRolePolicyDocument`, sin reemplazar el rol ni cambiar permisos de recursos. Ejecutarlo con autorización administrativa y volver a desplegar el commit revisado. Cambiar únicamente el archivo en Git no actualiza esta pila de requisitos, que se administra por separado.
+
+No quitar las condiciones de cuenta/rama ni añadir permisos administrativos para resolver este error. Tras la corrección, comprobar que el build supera la asunción del rol y evaluar por separado cualquier fallo posterior. [Formato de ARN de origen documentado por AWS](https://docs.aws.amazon.com/amplify/latest/userguide/cross-service-confused-deputy-prevention.html).
+
 ### Error «Deployment is not approved»
 
 Ese mensaje procede del antiguo `scripts/check-deploy-approval.cjs`, no de una autorización pendiente de AWS. Fusionar la actualización que elimina ese control y desplegar el commit nuevo de `main`. Reintentar un build de un commit antiguo seguirá ejecutando su archivo `amplify.yml` antiguo. No hace falta añadir variables de aprobación para el flujo actual.
