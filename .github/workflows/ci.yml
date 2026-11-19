@@ -35,6 +35,19 @@ jobs:
         run: npm run check
       - name: Run syntax and regression tests
         run: npm test
+      - name: Verify generated backend security
+        env:
+          CONTACT_EMAIL: owner@example.test
+          CONTACT_ENABLED: 'false'
+          AWS_APP_ID: testapp
+          CONTACT_API_ID: testapi123
+          CDK_DEFAULT_ACCOUNT: '123456789012'
+          CDK_DEFAULT_REGION: us-east-2
+          CDK_OUTDIR: .amplify/artifacts/security-synth
+          CDK_CONTEXT_JSON: '{"amplify-backend-name":"main","amplify-backend-namespace":"testapp","amplify-backend-type":"branch"}'
+        run: |
+          node --import tsx amplify/backend.ts
+          node scripts/check-synth-security.cjs .amplify/artifacts/security-synth
       - name: Build static files and license notices
         run: npm run build
       - name: Validate CloudFormation template
@@ -42,5 +55,6 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/cfn-lint"
           "$RUNNER_TEMP/cfn-lint/bin/python" -m pip install --disable-pip-version-check cfn-lint==1.60.1
           "$RUNNER_TEMP/cfn-lint/bin/cfn-lint" infra/*.yaml
+          "$RUNNER_TEMP/cfn-lint/bin/python" tests/deployment-security.test.py
       - name: Check tracked source stays unchanged
         run: git diff --exit-code

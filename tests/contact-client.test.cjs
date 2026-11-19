@@ -10,7 +10,7 @@ test('client posts once without credentials and requires explicit server accepta
 });
 test('client distinguishes configuration, validation and throttling without retries',async()=>{
  for(const value of [null,'http://test123.execute-api.us-east-2.amazonaws.com/contact','https://evil.example/contact'])assert.deepEqual(await sendContact(value,{},()=>{throw Error('must not call');}),{ok:false,reason:'unavailable'});
- for(const [status,reason] of [[400,'invalid'],[429,'busy'],[503,'failed']])assert.deepEqual(await sendContact(endpoint,{},async()=>({ok:false,status})),{ok:false,reason});
+ for(const [status,reason] of [[400,'invalid'],[403,'verification'],[429,'busy'],[503,'failed']])assert.deepEqual(await sendContact(endpoint,{},async()=>({ok:false,status})),{ok:false,reason});
  let calls=0;assert.deepEqual(await sendContact(endpoint,{},async()=>{calls++;throw Error('network');}),{ok:false,reason:'failed'});assert.equal(calls,1);
  assert.equal((await sendContact(endpoint,{},async()=>({ok:true,json:async()=>{throw Error('malformed');}}))).ok,false);
 });

@@ -34,16 +34,20 @@ test('build includes font notices without altering source or deploying', () => {
       const sourceRelative = path.relative(root, source);
       assert.deepEqual(fs.readFileSync(path.join(tmp, sourceRelative)), fs.readFileSync(source), 'Source must be unchanged: ' + sourceRelative);
     }
-    const build=()=>cp.spawnSync(process.execPath,[path.join(tmp,'scripts/build.cjs'),'--amplify'],{encoding:'utf8'});
+    let siteKey;
+    const build=()=>cp.spawnSync(process.execPath,[path.join(tmp,'scripts/build.cjs'),'--amplify'],{encoding:'utf8',env:{...process.env,TURNSTILE_SITE_KEY:siteKey,TURNSTILE_SECRET_KEY:'DO_NOT_PUBLISH_SECRET'}});
     assert.notEqual(build().status,0,'Production build must require backend outputs');
     const outputFile=path.join(tmp,'amplify_outputs.json');
     fs.writeFileSync(outputFile,JSON.stringify({custom:{contact_endpoint:'https://evil.example/contact'}}));
     assert.notEqual(build().status,0,'Invalid endpoint must fail the build');
     const endpoint='https://example123.execute-api.us-east-2.amazonaws.com/contact';
     fs.writeFileSync(outputFile,JSON.stringify({custom:{contact_endpoint:endpoint,private_value:'DO_NOT_PUBLISH'}}));
+    assert.notEqual(build().status,0,'Missing site key must fail the build');
+    siteKey='1x00000000000000000000AA';assert.notEqual(build().status,0,'Dummy site key must fail the build');
+    siteKey='0x4AAAAAAAAAAAExamplePublicKey';
     const result=build();assert.equal(result.status,0,result.stderr);
     const config=fs.readFileSync(path.join(tmp,'dist/assets/contact-config.js'),'utf8');
-    assert.ok(config.includes(endpoint));assert.ok(!config.includes('DO_NOT_PUBLISH'));
+    assert.ok(config.includes(endpoint));assert.ok(config.includes(siteKey));assert.ok(!config.includes('DO_NOT_PUBLISH_SECRET'));assert.ok(!config.includes('DO_NOT_PUBLISH'));
     assert.ok(!fs.existsSync(path.join(tmp,'dist/amplify_outputs.json')));
     assert.equal(fs.readFileSync(path.join(tmp,'public/assets/contact-config.js'),'utf8'),fs.readFileSync(path.join(root,'public/assets/contact-config.js'),'utf8'));
   } finally { fs.rmSync(tmp, {recursive: true, force: true}); }

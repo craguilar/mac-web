@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 const root=document.querySelector('#app'),variant='monolith';
-let lang=new URLSearchParams(location.search).get('lang')==='es'?'es':'en',contactObserver=null,clearSnapshot=null,sending=false;
+let lang=new URLSearchParams(location.search).get('lang')==='es'?'es':'en',contactObserver=null,clearSnapshot=null,sending=false,contactChallenge=null;
 const words={
   "en": {
     "language": "Language",
@@ -32,8 +32,12 @@ const words={
     "restored": "Your message has been restored.",
     "fieldRequired": "Complete this field to send your message.",
     "emailInvalid": "Enter a valid email address.",
-    "contactNotice": "We use your details to reply to your inquiry. Delivery uses AWS and our Google-hosted inbox. Please do not include sensitive information.",
+    "contactNotice": "We use your details to reply to your inquiry. Delivery uses AWS and our Google-hosted inbox; Cloudflare verifies requests to prevent spam. Please do not include sensitive information.",
     "fieldInvalid": "Check this field and its length.",
+    "checking": "Complete the verification before sending.",
+    "verification": "Please verify again, then send your message.",
+    "verificationUnavailable": "Verification could not load. Your message is still here.",
+    "retryVerification": "Retry verification",
     "sending": "Sending…",
     "sent": "Thank you. Your message has been submitted.",
     "failed": "We could not confirm sending. Your message is still here. Please wait before trying again.",
@@ -70,8 +74,12 @@ const words={
     "restored": "Tu mensaje se ha recuperado.",
     "fieldRequired": "Completa este campo para enviar tu mensaje.",
     "emailInvalid": "Introduce un correo electrónico válido.",
-    "contactNotice": "Usamos tus datos para responder tu consulta. El envío utiliza AWS y nuestro buzón alojado en Google. Evita incluir información sensible.",
+    "contactNotice": "Usamos tus datos para responder tu consulta. El envío utiliza AWS y nuestro buzón alojado en Google; Cloudflare verifica las solicitudes para evitar spam. Evita incluir información sensible.",
     "fieldInvalid": "Revisa este campo y su longitud.",
+    "checking": "Completa la verificación antes de enviar.",
+    "verification": "Verifica de nuevo y envía tu mensaje.",
+    "verificationUnavailable": "No se pudo cargar la verificación. Tu mensaje sigue aquí.",
+    "retryVerification": "Reintentar verificación",
     "sending": "Enviando…",
     "sent": "Gracias. Tu mensaje se ha enviado.",
     "failed": "No pudimos confirmar el envío. Tu mensaje sigue aquí. Espera antes de volver a intentarlo.",
@@ -91,9 +99,9 @@ function about(t,x){return `<section class="about section about-chiapas" id="abo
 function process(t,x){return `<section class="process section" id="approach"><div class="section-label"><span class="eyebrow">${t.processLabel}</span><h2>${t.process}</h2></div><div class="process-list">${t.steps.map((v,i)=>`<article class="process-step"><span class="step-dot" aria-hidden="true"></span><h3>${v}</h3><p>${t.stepCopy[i]}</p></article>`).join('')}</div></section>`;}
 function contact(t,x){
  const field=i=>{const name=['name','email','company','message'][i];return `<label class="field ${i>1?'full':''}"><span id="field-label-${i}">${t.fields[i]}</span>${i===3?`<span class="field-hint" id="message-help">${x.messageHelp}</span><textarea name="message" aria-labelledby="field-label-${i}" required maxlength="3000" rows="5" aria-describedby="message-help message-count error-message" placeholder="${x.prompt}"></textarea><span class="field-meta" id="message-count">0 / 3000 ${x.characters}</span>`:`<input name="${name}" aria-labelledby="field-label-${i}" type="${i===1?'email':'text'}" ${i<2?'required':''} ${i===1?'inputmode="email" autocapitalize="none" spellcheck="false"':''} maxlength="${i===1?254:160}" autocomplete="${['name','email','organization'][i]}" aria-describedby="error-${name}">`}<span id="error-${name}" class="field-error" aria-live="polite"></span></label>`;};
- return `<section class="contact section" id="contact" aria-labelledby="contact-title"><div class="contact-heading"><span class="eyebrow">${t.contactLabel}</span><h2 id="contact-title">${t.contact}</h2><p>${t.contactCopy}</p></div><form novalidate aria-label="${t.contactLabel}"><div class="contact-notice full"><p>${x.contactNotice}</p></div><p class="form-note full">${x.required}</p>${field(0)}${field(1)}${field(3)}<details class="optional-details full"><summary>${x.optionalDetails}</summary><div class="optional-fields">${field(2)}<label class="field full topic-field"><span>${x.topic}</span><select name="topic"><option value="">${x.topicEmpty}</option>${t.st.map((name,i)=>`<option value="${['build','architecture','delivery'][i]}">${name}</option>`).join('')}</select></label></div></details><label class="contact-trap" aria-hidden="true">Website<input name="website" type="text" tabindex="-1" autocomplete="off"></label><p class="send-feedback full" role="status" aria-live="polite"></p><div class="form-actions full"><button class="button" type="submit">${t.submit}${arrow()}</button><button class="text-button" type="reset">${x.reset}</button></div><div class="reset-row full"><p class="reset-feedback" role="status"></p><button class="undo-reset text-button" type="button" ${clearSnapshot?'':'hidden'}>${x.undo}</button></div></form></section>`;
+ return `<section class="contact section" id="contact" aria-labelledby="contact-title"><div class="contact-heading"><span class="eyebrow">${t.contactLabel}</span><h2 id="contact-title">${t.contact}</h2><p>${t.contactCopy}</p></div><form novalidate aria-label="${t.contactLabel}"><div class="contact-notice full"><p>${x.contactNotice}</p></div><p class="form-note full">${x.required}</p>${field(0)}${field(1)}${field(3)}<details class="optional-details full"><summary>${x.optionalDetails}</summary><div class="optional-fields">${field(2)}<label class="field full topic-field"><span>${x.topic}</span><select name="topic"><option value="">${x.topicEmpty}</option>${t.st.map((name,i)=>`<option value="${['build','architecture','delivery'][i]}">${name}</option>`).join('')}</select></label></div></details><label class="contact-trap" aria-hidden="true">Website<input name="website" type="text" tabindex="-1" autocomplete="off"></label><div class="verification full"><div class="contact-challenge" tabindex="-1"></div><p class="verification-feedback" role="status"></p><button class="verification-retry text-button" type="button" hidden>${x.retryVerification}</button></div><p class="send-feedback full" role="status" aria-live="polite"></p><div class="form-actions full"><button class="button" type="submit">${t.submit}${arrow()}</button><button class="text-button" type="reset">${x.reset}</button></div><div class="reset-row full"><p class="reset-feedback" role="status"></p><button class="undo-reset text-button" type="button" ${clearSnapshot?'':'hidden'}>${x.undo}</button></div></form></section>`;
 }
-function render(){if(contactObserver)contactObserver.disconnect();document.body.classList.remove('menu-open');const t=window.consultingContent[lang],x=words[lang];const old=root.querySelector('form'),draft=old?Object.fromEntries(new FormData(old)):{},detailsOpen=Boolean(old?.querySelector('.optional-details')?.open);
+function render(){contactChallenge?.destroy();if(contactObserver)contactObserver.disconnect();document.body.classList.remove('menu-open');const t=window.consultingContent[lang],x=words[lang];const old=root.querySelector('form'),draft=old?Object.fromEntries(new FormData(old)):{},detailsOpen=Boolean(old?.querySelector('.optional-details')?.open);
 document.documentElement.lang=lang;document.title=`${t.company} · ${t.eyebrow}`;const description=`${t.company}. ${x.foundation} ${x.forward}`;document.querySelector('meta[name="description"]').content=description;document.querySelector('meta[property="og:title"]').content=document.title;document.querySelector('meta[property="og:description"]').content=description;root.innerHTML=`<a class="skip-link" href="#main">${x.skip}</a><div class="site ${variant}"><header class="site-header"><a class="brand" href="#main">${mark}<span>${t.company}</span></a><div class="header-controls">${langButtons()}<button type="button" class="menu-toggle" aria-expanded="false" aria-controls="site-nav"><span>${x.menu}</span><i aria-hidden="true"></i></button></div><nav id="site-nav" aria-label="${lang==='es'?'Navegación principal':'Main navigation'}">${x.nav.map((v,i)=>`<a href="#${['services','about','approach','contact'][i]}">${v}${i===3?arrow():''}</a>`).join('')}</nav></header><main id="main" tabindex="-1">${hero(t,x)}${services(t,x)}${about(t,x)}${process(t,x)}${contact(t,x)}</main><footer class="site-footer"><span><span class="footer-brand">${t.company}</span><span class="footer-disciplines">${t.footer}</span></span><a href="#main">${x.top}${arrow('up')}</a></footer></div><div class="mobile-contact" hidden><span>${t.eyebrow}</span><a class="button" href="#contact">${t.cta}${arrow()}</a></div>`;
 const form=root.querySelector('form');Object.entries(draft).forEach(([k,v])=>{if(form.elements.namedItem(k))form.elements.namedItem(k).value=v;});
 form.querySelector('.optional-details').open=detailsOpen||Boolean(draft.company||draft.topic);
@@ -104,11 +112,14 @@ const counter=root.querySelector('#message-count'),feedback=root.querySelector('
 function updateCounter(){counter.textContent=`${form.elements.message.value.length} / 3000 ${x.characters}`;}updateCounter();if(clearSnapshot)feedback.textContent=x.resetDone;
 form.addEventListener('input',e=>{sendFeedback.textContent='';feedback.textContent='';clearSnapshot=null;undo.hidden=true;e.target.removeAttribute('aria-invalid');const error=root.querySelector('#error-'+e.target.name);if(error)error.textContent='';updateCounter();});
 form.addEventListener('change',()=>{clearSnapshot=null;undo.hidden=true;feedback.textContent='';});
-form.addEventListener('reset',()=>{sendFeedback.textContent='';const values=Object.fromEntries(new FormData(form));if(Object.values(values).some(v=>String(v).trim()))clearSnapshot=values;form.querySelectorAll('.field-error').forEach(e=>e.textContent='');form.querySelectorAll('[aria-invalid]').forEach(e=>e.removeAttribute('aria-invalid'));feedback.textContent=x.resetDone;undo.hidden=!clearSnapshot;form.querySelector('.optional-details').open=false;counter.textContent=`0 / 3000 ${x.characters}`;});
+form.addEventListener('reset',()=>{contactChallenge?.reset();sendFeedback.textContent='';const values=Object.fromEntries(new FormData(form));if(Object.values(values).some(v=>String(v).trim()))clearSnapshot=values;form.querySelectorAll('.field-error').forEach(e=>e.textContent='');form.querySelectorAll('[aria-invalid]').forEach(e=>e.removeAttribute('aria-invalid'));feedback.textContent=x.resetDone;undo.hidden=!clearSnapshot;form.querySelector('.optional-details').open=false;counter.textContent=`0 / 3000 ${x.characters}`;});
 undo.addEventListener('click',()=>{if(!clearSnapshot)return;Object.entries(clearSnapshot).forEach(([k,v])=>{form.elements.namedItem(k).value=v;});clearSnapshot=null;undo.hidden=true;form.querySelector('.optional-details').open=Boolean(form.elements.company.value||form.elements.topic.value);feedback.textContent=x.restored;updateCounter();form.elements.message.focus({preventScroll:true});});
 root.querySelectorAll('[data-service]').forEach(a=>a.addEventListener('click',()=>{if(sending)return;form.elements.topic.value=a.dataset.service;form.querySelector('.optional-details').open=true;clearSnapshot=null;undo.hidden=true;feedback.textContent='';}));
 const dock=root.querySelector('.mobile-contact');let heroVisible=true,contactVisible=false;function syncDock(){dock.hidden=heroVisible||contactVisible||document.body.classList.contains('menu-open')||form.contains(document.activeElement);}contactObserver=new IntersectionObserver(entries=>{for(const entry of entries){if(entry.target.classList.contains('hero'))heroVisible=entry.isIntersecting;else contactVisible=entry.isIntersecting;}syncDock();},{threshold:0});contactObserver.observe(root.querySelector('.hero'));contactObserver.observe(root.querySelector('#contact'));form.addEventListener('focusin',syncDock);form.addEventListener('focusout',()=>queueMicrotask(syncDock));
 const sendFeedback=form.querySelector('.send-feedback'),submit=form.querySelector('[type=submit]');
+const verificationFeedback=form.querySelector('.verification-feedback'),retryVerification=form.querySelector('.verification-retry');
+contactChallenge=window.macContactChallenge.createChallenge({container:form.querySelector('.contact-challenge'),siteKey:window.macContactConfig?.siteKey,language:lang,onState:state=>{verificationFeedback.textContent=state==='verified'?'':x[state];retryVerification.hidden=state!=='verificationUnavailable';}});
+retryVerification.addEventListener('click',()=>contactChallenge.reset());
 function setSending(on){sending=on;form.setAttribute('aria-busy',String(on));form.querySelectorAll('input,textarea,select,button').forEach(el=>el.disabled=on);root.querySelectorAll('[data-lang]').forEach(el=>el.disabled=on);submit.innerHTML=`${on?x.sending:t.submit}${arrow()}`;}
 form.addEventListener('submit',async e=>{
  e.preventDefault();if(sending)return;
@@ -116,11 +127,13 @@ form.addEventListener('submit',async e=>{
  const checked=window.macContactValidation.validateContact(payload);
  form.querySelectorAll('.field-error').forEach(el=>el.textContent='');form.querySelectorAll('[aria-invalid]').forEach(el=>el.removeAttribute('aria-invalid'));
  if(!checked.ok){let first=null;for(const [name,reason] of Object.entries(checked.errors)){const input=form.elements.namedItem(name),error=form.querySelector('#error-'+name);if(input){input.setAttribute('aria-invalid','true');first=first||input;}if(error)error.textContent=reason==='required'?x.fieldRequired:name==='email'?x.emailInvalid:x.fieldInvalid;}sendFeedback.textContent=x.invalid;if(first){if(first.closest('.optional-details'))form.querySelector('.optional-details').open=true;first.focus();}return;}
+ payload.turnstileToken=contactChallenge.getToken();
+ if(!payload.turnstileToken){sendFeedback.textContent=x.verification;form.querySelector('.contact-challenge').focus();return;}
  setSending(true);sendFeedback.textContent=x.sending;
  const result=await window.macContactClient.sendContact(window.macContactConfig?.endpoint,payload);
  setSending(false);
  if(result.ok){form.reset();clearSnapshot=null;undo.hidden=true;feedback.textContent='';sendFeedback.textContent=x.sent;}
- else sendFeedback.textContent=x[result.reason]||x.failed;
+ else {contactChallenge.reset();sendFeedback.textContent=x[result.reason]||x.failed;}
 });
 }
 function bindLanguage(){document.documentElement.lang=lang;root.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',()=>{if(sending||b.dataset.lang===lang)return;lang=b.dataset.lang;const u=new URL(location.href);u.searchParams.set('lang',lang);history.replaceState(null,'',u);render();root.querySelector('[data-lang='+lang+']').focus({preventScroll:true});}));}

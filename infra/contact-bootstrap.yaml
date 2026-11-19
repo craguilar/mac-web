@@ -1,0 +1,205 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Restricted CDK file-asset bootstrap for the MAC Amplify main branch. No lookup or container publishing roles.
+Parameters:
+  AmplifyAppId:
+    Type: String
+    AllowedPattern: '[a-z0-9]+'
+  AmplifyServiceRoleArn:
+    Type: String
+    AllowedPattern: arn:aws:iam::[0-9]{12}:role/.+
+Resources:
+  StagingBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName:
+        Fn::Sub: cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: BucketOwnerEnforced
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+        - Id: OldAssetVersions
+          Status: Enabled
+          NoncurrentVersionExpiration:
+            NoncurrentDays: 30
+          AbortIncompleteMultipartUpload:
+            DaysAfterInitiation: 1
+  StagingBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: StagingBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Deny
+          Principal: '*'
+          Action: s3:*
+          Resource:
+          - Fn::GetAtt:
+            - StagingBucket
+            - Arn
+          - Fn::Sub: ${StagingBucket.Arn}/*
+          Condition:
+            Bool:
+              aws:SecureTransport: 'false'
+  FilePublishingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        Fn::Sub: cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - sts:AssumeRole
+          - sts:TagSession
+          Principal:
+            AWS:
+              Ref: AmplifyServiceRoleArn
+      Policies:
+      - PolicyName: PublishMacAssets
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - s3:GetObject
+            - s3:GetObjectVersion
+            - s3:PutObject
+            - s3:DeleteObject
+            - s3:AbortMultipartUpload
+            - s3:ListBucket
+            - s3:GetBucketLocation
+            - s3:GetBucketVersioning
+            - s3:GetEncryptionConfiguration
+            Resource:
+            - Fn::GetAtt:
+              - StagingBucket
+              - Arn
+            - Fn::Sub: ${StagingBucket.Arn}/*
+  CloudFormationExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        Fn::Sub: cdk-hnb659fds-cfn-exec-role-${AWS::AccountId}-${AWS::Region}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - sts:AssumeRole
+          Principal:
+            Service: cloudformation.amazonaws.com
+      ManagedPolicyArns:
+      - Fn::Sub: arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/mac-web-${AmplifyAppId}-deployment
+  DeploymentActionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        Fn::Sub: cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - sts:AssumeRole
+          - sts:TagSession
+          Principal:
+            AWS:
+              Ref: AmplifyServiceRoleArn
+      Policies:
+      - PolicyName: DeployMacMain
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - cloudformation:CreateStack
+            - cloudformation:UpdateStack
+            - cloudformation:DeleteStack
+            - cloudformation:CreateChangeSet
+            - cloudformation:DeleteChangeSet
+            - cloudformation:ExecuteChangeSet
+            - cloudformation:RollbackStack
+            - cloudformation:ContinueUpdateRollback
+            - cloudformation:UpdateTerminationProtection
+            Resource:
+            - Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/amplify-${AmplifyAppId}-main-*/*
+          - Effect: Allow
+            Action:
+            - cloudformation:DescribeStacks
+            - cloudformation:DescribeStackEvents
+            - cloudformation:DescribeStackResources
+            - cloudformation:DescribeStackResource
+            - cloudformation:GetTemplate
+            - cloudformation:GetTemplateSummary
+            - cloudformation:ListStackResources
+            - cloudformation:DescribeChangeSet
+            - cloudformation:ListChangeSets
+            Resource:
+            - Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/amplify-${AmplifyAppId}-main-*/*
+            - Fn::Sub: arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/CDKToolkit/*
+          - Effect: Allow
+            Action:
+            - cloudformation:ListStacks
+            Resource:
+            - '*'
+          - Effect: Allow
+            Action:
+            - iam:PassRole
+            Resource:
+            - Fn::GetAtt:
+              - CloudFormationExecutionRole
+              - Arn
+            Condition:
+              StringEquals:
+                iam:PassedToService: cloudformation.amazonaws.com
+          - Effect: Allow
+            Action:
+            - s3:GetObject
+            - s3:GetObjectVersion
+            - s3:ListBucket
+            - s3:GetBucketLocation
+            Resource:
+            - Fn::GetAtt:
+              - StagingBucket
+              - Arn
+            - Fn::Sub: ${StagingBucket.Arn}/*
+          - Effect: Allow
+            Action:
+            - ssm:GetParameter
+            - ssm:GetParameters
+            Resource:
+            - Fn::Sub: arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/cdk-bootstrap/hnb659fds/version
+  CdkBootstrapVersion:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Name: /cdk-bootstrap/hnb659fds/version
+      Value: '6'
+Outputs:
+  BucketName:
+    Value:
+      Ref: StagingBucket
+  BucketDomainName:
+    Value:
+      Fn::GetAtt:
+      - StagingBucket
+      - RegionalDomainName
+  BootstrapVersion:
+    Value: '6'

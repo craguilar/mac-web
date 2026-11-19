@@ -1,7 +1,7 @@
 'use strict';
 const {validateContact} = require('../../../public/assets/contact-validation.js');
 
-function createHandler({sendEmail, recipient, sender, origins}) {
+function createHandler({sendEmail, recipient, sender, origins, verifyChallenge, isEnabled}) {
   const reply = (statusCode, body) => ({statusCode, headers: {'content-type':'application/json', 'cache-control':'no-store'}, body: JSON.stringify(body)});
   return async event => {
     if (event.requestContext?.http?.method !== 'POST') return reply(405, {ok:false});
@@ -14,7 +14,9 @@ function createHandler({sendEmail, recipient, sender, origins}) {
     if (input && typeof input.website === 'string' && input.website) return reply(200, {ok:true});
     const validated = validateContact(input);
     if (!validated.ok) return reply(400, {ok:false, errors:validated.errors});
-    if (!recipient || !sender) return reply(503, {ok:false});
+    if (!recipient || !sender || !isEnabled()) return reply(503, {ok:false});
+    const verification=await verifyChallenge(input.turnstileToken,event.headers.origin);
+    if (!verification.ok) return reply(verification.reason==='verification'?403:503,{ok:false,reason:verification.reason});
     const v = validated.value;
     const text = [
       `Name / Nombre: ${v.name}`, `Email / Correo: ${v.email}`,

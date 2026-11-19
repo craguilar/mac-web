@@ -41,16 +41,16 @@ El resto de la configuración sigue usando la conexión directa:
 - `MAC_AMPLIFY_DEPLOY_APPROVED`, `MAC_AMPLIFY_APPROVED_BRANCH`, `MAC_AMPLIFY_APPROVED_COMMIT` y `MAC_AMPLIFY_DEPLOY_OWNER` pertenecían al flujo anterior y ya no se utilizan. Retirar esos valores si se añadieron en Amplify.
 - `AWS_APP_ID`, `AWS_BRANCH` y `AWS_PULL_REQUEST_ID` los proporciona Amplify. No configurarlos manualmente. El control `scripts/check-deploy-branch.cjs` permite `main` y rechaza vistas previas; no exige una aprobación por commit. [Variables de Amplify](https://docs.aws.amazon.com/amplify/latest/userguide/environment-variables.html).
 
-Las dependencias del backend están fijadas en `package-lock.json`; tanto CI como Amplify usan `npm ci`. El build de producción falla si falta el endpoint en `amplify_outputs.json`. Solo copia esa URL pública a `dist/assets/contact-config.js`; los outputs completos y el destinatario no se publican.
+Las dependencias del backend están fijadas en `package-lock.json`; tanto CI como Amplify usan `npm ci`. El build de producción falla si falta el endpoint en `amplify_outputs.json`. También requiere la clave pública de Turnstile. Solo copia esa URL y `TURNSTILE_SITE_KEY` a `dist/assets/contact-config.js`; los outputs completos y el destinatario no se publican.
 
 ### Preparación del backend de contacto
 
 1. Verificar que SES en `us-east-2` tenga envío habilitado y acceso de producción. En sandbox, también debe estar verificado el destinatario.
-2. Desplegar `infra/contact-prerequisites.yaml` con el ID de la aplicación existente y la zona pública de `mactecnologia.com.mx`. Crea la identidad SES, tres CNAME de Easy DKIM y un rol de servicio para esa aplicación; conserva los registros web y MX existentes. No aplicarla sobre una identidad ya administrada por otra pila: reutilizar/importar la identidad primero.
-3. Esperar `VerifiedForSendingStatus=true` y DKIM `SUCCESS`. Los recursos de identidad/DNS tienen retención al borrar la pila; no borrarlos accidentalmente como parte de una reversión de código.
-4. Asignar el output `ServiceRoleArn` al rol de servicio de la aplicación Amplify. Usa la política oficial `AmplifyBackendDeployFullAccess`, con confianza limitada a esa aplicación/cuenta.
-5. Seguir el [runbook de bootstrap de CDK](cdk-bootstrap-runbook.md) para revisar, ejecutar manualmente y verificar la preparación de la cuenta/región. El bootstrap estándar crea almacenamiento de artefactos y roles de despliegue; su rol de ejecución CloudFormation usa `AdministratorAccess` por defecto. Revisar y aprobar ese alcance o suministrar una política de ejecución restringida antes de ejecutarlo. No se necesita este permiso en el navegador ni en la función de contacto.
-6. Configurar `CONTACT_EMAIL` y mantener las vistas previas desactivadas. Confirmar el aviso de privacidad completo y un responsable de revisar el buzón antes de habilitar envíos públicos.
+2. Desplegar `infra/contact-prerequisites.yaml` con el ID de la aplicación, zona pública y destinatario privado. Crea SES/DKIM, el HTTP API fijo y permisos restringidos; conserva registros web/MX existentes. No duplicar una identidad administrada por otra pila.
+3. Esperar `VerifiedForSendingStatus=true` y DKIM `SUCCESS`. Identidad/DNS tienen retención al borrar la pila.
+4. Asignar `ServiceRoleArn` a la aplicación y `ContactApiId` a `CONTACT_API_ID` de `main`. El rol de Amplify queda limitado a los roles de despliegue/archivos de esta aplicación.
+5. Seguir el [bootstrap restringido](cdk-bootstrap-runbook.md). El rol de ejecución administra solo recursos de contacto de esta aplicación y exige boundaries de runtime; no usa AdministratorAccess.
+6. Completar [Turnstile y controles operativos](contact-security.md): `TURNSTILE_SITE_KEY` público, `TURNSTILE_SECRET_KEY` en Secrets, `CONTACT_EMAIL` privado y `CONTACT_ENABLED=true` al activar. Mantener previews desactivadas y confirmar aviso completo/responsable del buzón.
 
 La identidad SES/DKIM y el rol son requisitos de la aplicación existente. `infra/amplify-prod.yaml` sigue siendo una plantilla opcional para una aplicación/rama nueva; no aplicarla encima de la rama existente.
 
@@ -59,11 +59,12 @@ Referencias: [rol de Amplify](https://docs.aws.amazon.com/amplify/latest/usergui
 ### Contrato y límites operativos
 
 - `name` obligatorio (160), `email` obligatorio (254), `message` obligatorio (3000), `company` opcional (160), `topic` opcional (`build`, `architecture`, `delivery`) y `language` (`es`/`en`). Se recortan espacios y descartan claves ajenas. Navegador y servidor usan el mismo validador.
+- `turnstileToken` obligatorio para enviar, máximo 2048 caracteres, validado con Cloudflare; no se incorpora al correo ni a logs.
 - Solo `POST /contact`, JSON de hasta 16 KiB y orígenes raíz/www HTTPS. La dirección To y el remitente los fija el servidor. Los permisos de SES se limitan al dominio, remitente y destinatario configurados.
-- Campo honeypot y throttle global de API Gateway: promedio de 0.1 solicitudes/segundo (6/minuto), ráfaga 2. Es un límite compartido y de mejor esfuerzo, no por IP. CORS no autentica y un bot puede falsificar Origin o saltarse el honeypot; revisar métricas y ajustar la protección si hay abuso.
+- Campo honeypot y throttle global de API Gateway: promedio de 0.1 solicitudes/segundo (6/minuto), ráfaga 2. Es un límite compartido y de mejor esfuerzo, no por IP. CORS no autentica y un bot puede falsificar Origin o saltarse el honeypot; Turnstile se valida además en servidor, con hostname y action exactos. La función admite dos ejecuciones concurrentes y rechaza envíos si `CONTACT_ENABLED` no es `true`.
 - SES recibe texto plano y Reply-To del visitante. No hay adjuntos, autorespuesta, almacenamiento de mensajes ni reintentos automáticos. Un timeout puede ocurrir después de que SES acepte el correo; un reintento manual puede duplicarlo. No se promete entrega exactamente una vez.
 - El cliente conserva el borrador ante fallos, bloquea envíos concurrentes y muestra estados ES/EN accesibles. HTTP 200 significa aceptación de SES, excepto el honeypot descartado intencionalmente. No equivale a entrega en la bandeja de entrada.
-- La aplicación no registra contenido ni direcciones; los logs de la función caducan en una semana. Revisar métricas de API Gateway (429/5xx), errores Lambda y reputación/rebotes de SES. El remitente técnico no implica que exista un buzón para recibir rebotes: definir su seguimiento antes de promocionar el formulario. No se añade un sistema de alertas en esta entrega.
+- La aplicación no registra contenido ni direcciones; los logs de la función caducan en una semana. Revisar métricas de API Gateway (429/5xx), errores Lambda y reputación/rebotes de SES. El remitente técnico no implica que exista un buzón para recibir rebotes: definir su seguimiento antes de promocionar el formulario. Se añaden alarmas de tráfico y respuestas 5xx con SNS; confirmar una suscripción operativa según la [guía de seguridad](contact-security.md#alertas-y-límites).
 
 ## Publicar y verificar
 

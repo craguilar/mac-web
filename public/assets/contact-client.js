@@ -7,6 +7,7 @@
     try {
       const response = await fetcher(endpoint, {method:'POST', mode:'cors', credentials:'omit', headers:{'Content-Type':'application/json'}, body:JSON.stringify(message), signal:controller.signal});
       if (response.status === 429) return {ok:false, reason:'busy'};
+      if (response.status === 403) return {ok:false, reason:'verification'};
       if (response.status === 400) return {ok:false, reason:'invalid'};
       if (!response.ok) return {ok:false, reason:'failed'};
       const result = await response.json();

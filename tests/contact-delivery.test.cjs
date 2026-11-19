@@ -2,9 +2,9 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const {createHandler}=require('../amplify/functions/contact/delivery.cjs');
 const origin='https://mactecnologia.com.mx';
-const valid={name:' Ana ',email:'ana@example.test',message:' Consulta de integración ',company:'Example',topic:'architecture',language:'es'};
+const valid={name:' Ana ',email:'ana@example.test',message:' Consulta de integración ',company:'Example',topic:'architecture',language:'es',turnstileToken:'visitor-token'};
 const event=(body=valid)=>({requestContext:{http:{method:'POST'}},headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)});
-function setup(overrides={}){const sent=[];return {sent,handler:createHandler({recipient:'owner@example.test',sender:'web@mactecnologia.com.mx',origins:[origin],sendEmail:async input=>sent.push(input),...overrides})};}
+function setup(overrides={}){const sent=[];return {sent,handler:createHandler({recipient:'owner@example.test',sender:'web@mactecnologia.com.mx',origins:[origin],sendEmail:async input=>sent.push(input),verifyChallenge:async()=>({ok:true}),isEnabled:()=>true,...overrides})};}
 test('SES acceptance delivers normalized fields to fixed inbox with visitor Reply-To',async()=>{
  const {handler,sent}=setup();const result=await handler(event({...valid,to:'attacker@example.test'}));
  assert.equal(result.statusCode,200);assert.deepEqual(JSON.parse(result.body),{ok:true});assert.equal(sent.length,1);
@@ -34,4 +34,18 @@ test('provider failures and missing configuration never claim success',async()=>
  finally{console.error=original;}
  assert.equal(logs.length,1);assert.doesNotMatch(logs[0],/secret|ana@/);
  const {handler,sent}=setup({recipient:''});assert.equal((await handler(event())).statusCode,503);assert.equal(sent.length,0);
+});
+
+test('bot verification and disabled sending fail closed before SES',async()=>{
+ for(const outcome of [{ok:false,reason:'verification'},{ok:false,reason:'unavailable'}]){
+  const {handler,sent}=setup({verifyChallenge:async()=>outcome});
+  const response=await handler(event());assert.equal(response.statusCode,outcome.reason==='verification'?403:503);assert.equal(sent.length,0);
+ }
+ const stopped=setup({isEnabled:()=>false,verifyChallenge:async()=>{throw Error('must not verify');}});
+ assert.equal((await stopped.handler(event())).statusCode,503);assert.equal(stopped.sent.length,0);
+});
+test('challenge validation receives only the token and trusted request origin',async()=>{
+ const calls=[];const {handler}=setup({verifyChallenge:async(...args)=>{calls.push(args);return {ok:true};}});
+ await handler(event({...valid,hostname:'evil.example',action:'forged'}));
+ assert.deepEqual(calls,[[valid.turnstileToken,origin]]);
 });
