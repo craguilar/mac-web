@@ -79,4 +79,4 @@ jobs:
           "$RUNNER_TEMP/cfn-lint/bin/cfn-lint" infra/*.yaml
           "$RUNNER_TEMP/cfn-lint/bin/python" tests/deployment-security.test.py
       - name: Check tracked source stays unchanged
-        run: git diff --exit-code
+        run: git -c safe.directory="$GITHUB_WORKSPACE" -C "$GITHUB_WORKSPACE" diff --exit-code
