@@ -84,6 +84,14 @@ Si aparece antes de clonar el repositorio o ejecutar `amplify.yml`, comprobar el
 
 No quitar las condiciones de cuenta/rama ni añadir permisos administrativos para resolver este error. Tras la corrección, comprobar que el build supera la asunción del rol y evaluar por separado cualquier fallo posterior. [Formato de ARN de origen documentado por AWS](https://docs.aws.amazon.com/amplify/latest/userguide/cross-service-confused-deputy-prevention.html).
 
+### Error «iam:PassRole» al crear la pila anidada
+
+Si el build supera los tipos/pruebas y falla al crear `function.NestedStack` porque `cdk-hnb659fds-cfn-exec-role-<ACCOUNT_ID>-<REGION>` no puede ejecutar `iam:PassRole` sobre sí mismo, falta el permiso para propagar ese rol a CloudFormation al crear la pila anidada. La política `DeploymentExecutionPolicy` de los requisitos debe permitir únicamente el ARN exacto de ese rol, con `iam:PassedToService=cloudformation.amazonaws.com`. El permiso separado para pasar roles runtime a Lambda conserva su alcance y condición.
+
+Preparar y revisar un change set de `mac-web-contact-prerequisites`, conservando los parámetros existentes. Debe modificar solo `DeploymentExecutionPolicy`, sin reemplazar recursos ni ampliar la confianza de los roles. Aplicar esta corrección antes de reintentar; fusionar el archivo en Git no actualiza la pila de requisitos.
+
+Si el primer intento terminó en `ROLLBACK_COMPLETE`, inventariar los recursos de la pila backend fallida. Cuando todos estén en `DELETE_COMPLETE` y no queden recursos activos o retenidos, eliminar únicamente ese registro de pila fallida con autorización y volver a desplegar `main`. No borrar la pila de requisitos, `CDKToolkit`, SES ni DNS. Si quedan recursos, revisar su recuperación individual antes de eliminar la pila. Completar también las variables y el secreto de Turnstile requeridos por el despliegue.
+
 ### Error «Deployment is not approved»
 
 Ese mensaje procede del antiguo `scripts/check-deploy-approval.cjs`, no de una autorización pendiente de AWS. Fusionar la actualización que elimina ese control y desplegar el commit nuevo de `main`. Reintentar un build de un commit antiguo seguirá ejecutando su archivo `amplify.yml` antiguo. No hace falta añadir variables de aprobación para el flujo actual.
