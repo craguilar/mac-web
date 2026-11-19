@@ -35,3 +35,10 @@ test('invalid config and failed adapter cannot activate; preview never becomes l
   assert.equal(failed.setConsent('granted'),false);assert.equal(failed.track('contact_open'),false);
   const good=setup().controller;good.setConsent('granted');assert.equal(good.track('generate_lead'),false);good.dispose();assert.equal(good.track('contact_open'),false);
 });
+test('telemetry transport and cleanup failures fail closed without escaping into the caller',()=>{
+ const {controller}=setup({adapter:{start(){return true;},send(){throw new Error('blocked');},stop(){throw new Error('cleanup unavailable');}}});
+ controller.setConsent('granted');
+ assert.equal(controller.track('generate_lead',{delivery:'accepted',language:'es'}),false);
+ assert.equal(controller.state().active,false);
+ assert.equal(controller.track('page_view',{language:'es'}),false);
+});

@@ -23,6 +23,8 @@ jobs:
   validate:
     name: Test and build (Node 24)
     runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright@sha256:1507cbfc550a63a6b7396791ca4f00df17beb56342d2447b3f106c306f525579 # v1.65.1-noble
     timeout-minutes: 15
     steps:
       - name: Check out source
@@ -40,8 +42,6 @@ jobs:
         run: npm run check
       - name: Run syntax and regression tests
         run: npm test
-      - name: Install mobile browser engines
-        run: npx playwright install --with-deps chromium webkit
       - name: Check mobile form, consent and CSP in Chromium and WebKit
         env:
           MAC_LIVE_CHECK: ${{ github.event_name == 'workflow_dispatch' && inputs.live_prod_checks && 'true' || 'false' }}
@@ -70,6 +70,10 @@ jobs:
         run: npm run build
       - name: Validate CloudFormation template
         run: |
+          if ! python3 -c 'import venv, ensurepip' >/dev/null 2>&1; then
+            apt-get update
+            apt-get install -y --no-install-recommends python3-venv
+          fi
           python3 -m venv "$RUNNER_TEMP/cfn-lint"
           "$RUNNER_TEMP/cfn-lint/bin/python" -m pip install --disable-pip-version-check cfn-lint==1.60.1
           "$RUNNER_TEMP/cfn-lint/bin/cfn-lint" infra/*.yaml
