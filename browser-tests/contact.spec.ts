@@ -63,7 +63,7 @@ test.afterEach(async({page},testInfo)=>{
  }
 });
 for(const language of ['es','en'] as const){
- test(`${language}: mobile form, consent, failed delivery and a single accepted lead`,async({page})=>{
+ test(`${language}: mobile form, consent, failed delivery and a single accepted lead`,async({page},testInfo)=>{
   const f=await fixture(page);
   await page.goto(origin+(language==='en'?'/en/':'/')+'?private=never-track');
   await expect(page.locator('html')).toHaveAttribute('lang',language);
@@ -73,6 +73,16 @@ for(const language of ['es','en'] as const){
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   expect(page.frames().some(frame=>frame.url().includes('/analytics.html'))).toBe(false);
   await page.locator('[data-consent="denied"]').tap();
+  await page.evaluate(()=>document.fonts.ready);
+  const viewport=page.viewportSize()!;
+  await page.locator('.hero').screenshot({path:testInfo.outputPath('mobile-hero.png')});
+  await page.setViewportSize({width:320,height:viewport.height});
+  await page.locator('.hero').screenshot({path:testInfo.outputPath('narrow-mobile-hero.png')});
+  if(language==='es'&&testInfo.project.name==='android-chromium'){
+   await page.setViewportSize({width:1280,height:900});
+   await page.locator('.hero').screenshot({path:testInfo.outputPath('wide-hero.png')});
+  }
+  await page.setViewportSize(viewport);
   await page.locator('button[type="submit"]').tap();
   await expect(page.locator('[name="name"]')).toHaveAttribute('aria-invalid','true');
   expect(f.posts).toHaveLength(0);
