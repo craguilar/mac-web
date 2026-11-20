@@ -46,26 +46,130 @@ La prueba automatizada ejecuta el bundle contra un DOM de pruebas, simula el pro
 - ES/EN: contenido, enlaces, metadatos, texto de consentimiento, teclado, zoom y formulario en iOS/Android. Comprobar que el borrador persiste al cambiar idioma.
 - Previews/local: cero colección, incluso con consentimiento almacenado.
 
-## Primera campaña: propuesta pendiente de cuenta y presupuesto
+## Primera campaña: piloto de Search en Tuxtla Gutiérrez
 
-Objetivo inicial: consultas de empresas que necesitan desarrollar o mejorar software. Propuesta de partida: Search en español; Chiapas y Ciudad de México son las zonas del plan previo, pendientes de ratificación. Usar ubicación por presencia, grupos por intención y términos de búsqueda revisados. No se han creado anuncios ni autorizado gasto.
+El 19 de noviembre de 2026, el propietario confirmó **Tuxtla Gutiérrez**, un límite mensual de **MX$1,000 incluyendo impuestos** y que necesita crear la cuenta de Google Ads. Este documento es el borrador para configurar un primer piloto de 30 días. El alta de la cuenta está en curso y falta comprobar su facturación; la campaña aún no está activada. El piloto no se renueva automáticamente.
 
-| Grupo propuesto | Palabras iniciales para revisar en Keyword Planner | URL |
-| --- | --- | --- |
-| Software para empresas | «desarrollo de software para empresas», «software a medida», «mejorar sistema empresarial» | `https://mactecnologia.com.mx/#services` |
-| Arquitectura y mejora | «consultoría de software», «revisión de arquitectura de software» | `https://mactecnologia.com.mx/#services` |
+### Presupuesto del piloto
 
-Empezar con concordancia exacta/de frase y revisar consultas reales. Negativas propuestas: empleo, vacantes, sueldo, cursos, tutorial, universidad, gratis y descargar. Validarlas frente a la oferta; no hay estimación de volumen, CPC o retorno comprobada.
+| Concepto | Importe MXN |
+| --- | ---: |
+| Presupuesto total de medios | 850.00 |
+| Reserva de IVA, calculada al 16% | 136.00 |
+| Total previsto con ese IVA | 986.00 |
+| Margen hasta el límite del propietario | 14.00 |
 
-Titulares de borrador (máximo 30 caracteres): **Software para tu negocio**, **Desarrollo de software**, **Mejora tus sistemas**, **Consultoría de software**, **Tecnología útil en Chiapas**, **MAC Tecnología**.
+El importe que se configura en **Presupuesto total de la campaña** es **850**, no 1,000. Google documenta IVA del 16% para México; comprobar país real de facturación, impuestos y cualquier cargo mostrado en la cuenta antes de activar. Si el total excede MX$1,000, reducir medios para respetar el límite. Los depósitos de prepago financian el mismo presupuesto; no son presupuesto adicional. No contar créditos promocionales como dinero disponible ni comprometer gasto para conseguirlos.
 
-Descripciones de borrador (máximo 90 caracteres):
+Usar un presupuesto total para una campaña nueva de Search con fecha inicial pendiente de aprobación y fecha final 29 días después, en la zona horaria de la cuenta. Google admite este tipo de presupuesto para Search y Maximize clicks; limita el importe de medios facturado para el periodo, pero no impone un máximo diario. No extender fechas, aumentar el presupuesto ni reiniciar el piloto automáticamente. Si la cuenta no ofrece presupuesto total, revisar la alternativa antes de activar: un presupuesto diario medio no garantiza el mismo tope para un periodo de 30 días que cruza meses.
 
-- Desarrollamos herramientas para tu negocio y mejoramos sistemas existentes. Hablemos.
-- Software, arquitectura y pruebas con un equipo chiapaneco. Cuéntanos tu proyecto.
-- Un primer paso claro, con alcance y prioridades definidos para tu negocio.
+### Configuración para cargar en Google Ads
 
-Antes de lanzar faltan cuenta Google Ads, presupuesto mensual/tope, ubicaciones, responsable de responder y aprobación de creatividades. También falta verificar medición de Ads: esta entrega mantiene `ad_storage`, `ad_user_data` y `ad_personalization` denegados y elimina parámetros de campañas/clics. No debe suponerse atribución publicitaria por tener GA4 o importar un evento. Definir y probar esa integración/consentimiento por separado, con la política de privacidad correspondiente, antes de optimizar por conversiones.
+| Ajuste | Valor del borrador |
+| --- | --- |
+| Nombre | `MAC - Search - Tuxtla - Software a medida - Piloto` |
+| Estado inicial | Borrador o pausada; activación pendiente de revisión final |
+| Tipo / objetivo de puja | Search; visitas al sitio mediante Maximizar clics |
+| Red | Solo Búsqueda de Google; socios de búsqueda y expansión a Display desactivados |
+| Ubicación | Ciudad de Tuxtla Gutiérrez, Chiapas, México; seleccionar y verificar el resultado de ciudad en Ads |
+| Opción de ubicación | Presencia: personas que están o suelen estar en la ubicación; quitar objetivos predeterminados más amplios |
+| Idioma | Español |
+| Grupo de anuncios | `Software para empresas` |
+| Oferta | Crear software a medida o mejorar una aplicación de negocio existente |
+| Destino | `https://mactecnologia.com.mx/` |
+| Presupuesto / duración | MX$850 total de medios; 30 días con inicio por definir |
+| Límite inicial de puja CPC | MX$10; sin ajustes de puja adicionales |
+| Dispositivos / horario | Todos los dispositivos; todos los días, sin restricciones iniciales de horario |
+| Audiencias | Sin remarketing ni exclusiones demográficas iniciales |
+| Expansiones | AI Max, concordancia amplia, expansión de URL y personalización automática de textos desactivadas |
+| Recomendaciones automáticas | No aplicar automáticamente aumentos de presupuesto, ampliaciones de segmentación ni cambios de puja |
+
+El CPC de MX$10 es una propuesta para controlar costo, **no una estimación del mercado**. Revisar las seis palabras en Keyword Planner con Tuxtla, español y Google Search cuando la cuenta esté disponible. Registrar fecha, volumen, CPC estimado y previsión de clics/gasto antes de decidir si el límite permite participar. Una puja baja puede impedir la entrega; no ampliarla ni cambiar de ciudad sin revisar el plan. Este presupuesto puede producir pocas visitas y ninguna consulta; no hay una promesa de volumen, ventas o retorno.
+
+### Palabras clave iniciales
+
+Un solo grupo con seis términos. Los corchetes indican concordancia exacta y las comillas concordancia de frase; ambas pueden incluir variantes cercanas, por lo que hay que revisar búsquedas reales.
+
+```text
+[desarrollo de software a medida]
+"desarrollo de software para empresas"
+[empresa de desarrollo de software]
+"software a medida para empresas"
+[desarrollo de sistemas a medida]
+"desarrollo de sistemas para empresas"
+```
+
+Negativas de campaña: cargar cada término de una palabra como negativa amplia y las dos expresiones entre comillas como negativas de frase. Las variantes se enumeran porque las negativas no cubren automáticamente todas las variantes cercanas.
+
+```text
+empleo
+empleos
+vacante
+vacantes
+sueldo
+salario
+curso
+cursos
+tutorial
+tutoriales
+diplomado
+universidad
+licenciatura
+tesis
+tarea
+descargar
+descarga
+crack
+pirata
+"software gratis"
+"software gratuito"
+```
+
+### Anuncio adaptable de búsqueda
+
+Descripción del negocio para el asistente de Google: **MAC Tecnología desarrolla software a medida para empresas. Creamos herramientas internas, integramos sistemas y mejoramos aplicaciones existentes. Somos un equipo de Chiapas y trabajamos con alcance y prioridades claros.** Categoría de servicio inicial: **Desarrollo de software a medida**. Revisar los recursos que Google genere antes de incorporarlos al anuncio.
+
+Un anuncio inicial; Google combinará los textos, sin posiciones fijadas. No se ofrecen precios, descuentos ni resultados que no estén publicados en el sitio. Ruta visible: `software` / `empresas`; la URL final sigue siendo la raíz en español.
+
+Titulares (máximo 30 caracteres cada uno):
+
+- Software para tu negocio
+- Desarrollo de software
+- Software a medida
+- Mejora tus sistemas
+- Herramientas para empresas
+- De la idea al primer paso
+- Un alcance claro
+- Trabajemos por etapas
+- Cuéntanos tu proyecto
+- Tecnología útil
+- Equipo de Chiapas
+- MAC Tecnología
+
+Descripciones (máximo 90 caracteres cada una):
+
+- Desarrollamos software a medida para tu negocio. Cuéntanos qué necesitas resolver.
+- Mejora una aplicación existente o crea una herramienta útil para tu empresa.
+- Definimos contigo un primer paso, con alcance y prioridades claros.
+- Un equipo de Chiapas para trabajar por etapas y avanzar con objetivos concretos.
+
+Textos destacados opcionales (máximo 25 caracteres): **Alcance claro**, **Trabajo por etapas**, **Software para negocios**, **Equipo de Chiapas**. El contacto se realiza en el formulario del sitio; este borrador no añade formularios alojados en Google, teléfono ni ubicación física.
+
+### Medición y revisión
+
+El propietario ya confirmó un envío real con mensaje de éxito, recepción de `generate_lead` en GA4 y su marcado como evento clave. Eso verifica la medición del sitio; **no acredita atribución de conversiones a Google Ads**. La implementación mantiene `ad_storage`, `ad_user_data` y `ad_personalization` denegados, elimina parámetros de campañas/clics y no transmite referrers. No basta con vincular GA4 o importar un evento para dar por resuelta esa atribución.
+
+En este piloto, revisar impresiones, clics, términos, ubicación y gasto en Ads; revisar las consultas consentidas de GA4 y las consultas reales del inbox por separado. Un clic no es una consulta ni una venta. No presentar leads totales del sitio como conversiones de Ads ni calcular un costo por lead publicitario sin atribución verificada. Conservar los consentimientos actuales; definir y probar una integración publicitaria por separado antes de usar pujas por conversiones. La finalización del aviso de privacidad quedó aplazada por el propietario y conserva su borrador pendiente.
+
+Después de los primeros 3 días de entrega y semanalmente, revisar gasto con impuestos, búsquedas irrelevantes, ubicación y calidad de las consultas. Añadir negativas justificadas y pausar ante un formulario roto o tráfico claramente ajeno a la oferta. Si no hay impresiones, revisar aprobación, volumen y puja antes de proponer cambios. Al cerrar los 30 días, registrar medios/impuestos, impresiones, clics, CPC, términos y consultas verificadas, distinguiendo origen confirmado de desconocido. Mantener la campaña detenida al terminar y decidir la siguiente inversión con esos datos.
+
+### Crear la cuenta y completar el lanzamiento
+
+1. Abrir [Google Ads](https://ads.google.com/) con la cuenta del negocio, preferiblemente la misma que administra GA4. Nombre: **MAC Tecnología**; sitio: `https://mactecnologia.com.mx/`. Elegir crear cuenta sin campaña si aparece; si el alta obliga a preparar una campaña, guardar el borrador sin activar.
+2. Confirmar **MXN**, la zona horaria del negocio y el país real de la dirección de facturación. Para operaciones en Tuxtla, la zona propuesta es Ciudad de México; no deducir la dirección fiscal a partir de la ciudad objetivo. El propietario introduce datos fiscales y de pago directamente en Google, sin enviarlos al chat ni al repositorio.
+3. Completar lo necesario para acceder a Keyword Planner y revisar las previsiones. Google exige completar el alta y facturación para sus funciones básicas. No añadir un segundo tag al sitio durante el asistente.
+4. Cargar el borrador anterior, verificar presupuesto total e impuestos, revisar anuncio y destino, y confirmar quién atenderá las consultas del inbox. No hay una promesa de tiempo de respuesta en los anuncios.
+5. Presentar la campaña concreta, fechas, cargos y ajustes finales para aprobar su activación. Registrar el identificador de campaña y el estado solo después de comprobarlos en Google Ads. Este documento por sí solo no crea ni publica anuncios.
 
 ## Referencias
 
@@ -75,3 +179,9 @@ Antes de lanzar faltan cuenta Google Ads, presupuesto mensual/tope, ubicaciones,
 - [Configuración de GA4](https://developers.google.com/analytics/devguides/collection/ga4/reference/config).
 - [Medición mejorada](https://support.google.com/analytics/answer/9216061?hl=es).
 - [Especificaciones de anuncios Search](https://support.google.com/google-ads/answer/17092074?hl=es).
+- [Crear una cuenta de Google Ads](https://support.google.com/google-ads/answer/6366720?hl=es).
+- [Presupuestos totales de campaña](https://support.google.com/google-ads/answer/10486938?hl=es).
+- [IVA y facturación por país](https://support.google.com/google-ads/answer/2375370?hl=es-la).
+- [Maximizar clics y límite CPC](https://support.google.com/google-ads/answer/6268626?hl=es).
+- [Opciones avanzadas de ubicación](https://support.google.com/google-ads/answer/1722038?hl=es).
+- [Keyword Planner y requisitos de cuenta](https://support.google.com/google-ads/answer/7337243?hl=es).
