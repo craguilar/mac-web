@@ -38,9 +38,11 @@ Verified implementation inventory for the notice:
 
 ## Real lead and mobile acceptance check
 
-After deployment, on a phone open the production site, accept analytics, complete Turnstile, and send one clearly labelled test inquiry using an address controlled by the tester. Confirm the success message and inbox receipt/Reply-To. In GA4 Realtime, confirm `generate_lead` appears once. Rejecting analytics must still allow contact delivery without a lead event.
+On 19 November 2026, the owner confirmed a real test submission displayed the success message and `generate_lead` appeared in GA4. Their event-report screenshot showed **one `generate_lead` from one user**, alongside page views. Contact-email delivery had already been confirmed. The owner then confirmed **`generate_lead` is marked as a key event**. These are owner-provided observations, not conclusions drawn from mocked tests.
 
-In GA4 Admin → Data display → Events, find `generate_lead` and mark the existing event with the key-event star. Do not create another trigger from `page_view` or `form_submit`; the site already sends the event after API acceptance. Do not assign an invented monetary value. Key-event receipt and account configuration remain unverified until observed or confirmed by the owner. [Google instructions](https://support.google.com/analytics/answer/13128484).
+The site sends the existing event after API acceptance; do not create another trigger from `page_view` or `form_submit` or assign an invented monetary value. Marking a key event does not retroactively change past reports. A submitted inquiry is not a commercially qualified lead. These checks verify sitewide GA4 collection, not Google Ads conversion attribution. [Google instructions](https://support.google.com/analytics/answer/13128484).
+
+For future contact-flow releases, verify success feedback, inbox receipt/Reply-To and one consented `generate_lead`. Rejecting analytics must still allow delivery without a lead event. The production mobile checks for PR #23 passed in Chromium and WebKit after Amplify job 20 succeeded; the owner-approved layout puts the primary CTA full width with the secondary link below. Those browser checks intercept submission and measurement requests, so they are separate evidence from the owner's real lead test.
 
 ## Search Console
 

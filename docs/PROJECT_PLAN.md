@@ -42,7 +42,7 @@ Evaluación del 18 de noviembre de 2026, basada en el código de `main`, los job
 | E. Seguridad | HTTPS funciona. La respuesta HTML revisada no incluye CSP, HSTS, X-Content-Type-Options ni Referrer-Policy. | Configurar y probar las cabeceras, CSP y caché con los recursos reales; verificar respuestas para rutas inexistentes. |
 | E. Interfaz y accesibilidad | Contenido ES/EN, navegación y pruebas estáticas disponibles. Este cambio retira las etiquetas de prototipo y los comentarios de revisión de diseño, conservando el aviso funcional del formulario. | Completar revisión de teclado/lector de pantalla, Safari/iOS, Chrome/Android y rendimiento en dispositivos reales. Las pruebas locales de layout no sustituyen esa matriz. |
 | F. Operación y recuperación | Publicación automática y dominio comprobados. El runbook describe una reversión mediante PR. | Verificar alertas de disponibilidad, errores y gasto, responsables operativos y una prueba real de reversión. Su configuración externa no se ha auditado. |
-| G. Campaña | Etapa posterior al lanzamiento funcional; sin evidencia de ejecución en esta revisión. | Confirmar objetivo, oferta, cuenta y presupuesto; preparar campaña y conversiones después de verificar contacto y consentimiento. |
+| G. Campaña | Piloto confirmado para Tuxtla Gutiérrez con MX$1,000 incluyendo impuestos; cuenta de Ads pendiente. GA4 recibió un lead real y el propietario lo marcó como evento clave. | Cargar el borrador de Search, revisar previsiones y facturación; atribución de Ads pendiente. Ver [configuración y anuncios](seo-analytics.md#primera-campaña-piloto-de-search-en-tuxtla-gutiérrez). |
 
 ### Selección de idioma actual
 
@@ -140,9 +140,9 @@ El único destino de publicación es `main`. Cada push inicia un build mediante 
 
 ## G. Campaña posterior al lanzamiento
 
-Confirmar objetivo, audiencia de Ciudad de México y Chiapas, oferta, cuenta publicitaria y presupuesto. Preparar anuncios y página de destino coherentes con la oferta, parámetros UTM sin datos personales y conversiones basadas en envíos reales. El piloto requiere aprobación expresa de campaña y gasto.
+El propietario confirmó un primer piloto de software para empresas en **Tuxtla Gutiérrez**, con **MX$1,000 mensuales incluyendo impuestos**, y necesita crear la cuenta de Ads. El [borrador vigente](seo-analytics.md#primera-campaña-piloto-de-search-en-tuxtla-gutiérrez) concentra una campaña de Search en español durante 30 días: MX$850 de medios, MX$136 de IVA previsto y MX$14 de margen. Revisar impuestos reales, previsiones y fechas antes de activar la campaña concreta.
 
-**Aceptación.** El informe del piloto relaciona inversión, conversiones verificadas, calidad de las consultas y costo. El remarketing queda desactivado por defecto y los clics por sí solos no se contabilizan como ventas.
+**Aceptación.** El informe separa inversión e impuestos, clics y consultas verificadas. GA4 ya recibe `generate_lead`, pero el sitio elimina parámetros de campaña/clics y no tiene atribución de Ads verificada. La primera puja propuesta es por clics con límite CPC; no optimizar por conversiones ni atribuir todas las consultas a los anuncios. El remarketing permanece desactivado. La campaña termina sin renovación automática y su activación requiere aprobación del alcance concreto.
 
 ## Evidencia por cambio
 
