@@ -20,6 +20,9 @@ for(const language of ['es','en'] as const){
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:testInfo.outputPath('live-mobile-consent.png')});
   await page.locator('[data-consent="denied"]').tap();
+  await page.evaluate(()=>document.fonts.ready);
+  await page.locator('.hero').screenshot({path:testInfo.outputPath('live-mobile-hero.png')});
+  await page.locator('.hero-actions .button').tap();
   await page.locator('button[type="submit"]').tap();
   await expect(page.locator('[name="name"]')).toHaveAttribute('aria-invalid','true');
   await expect(page.locator('[name="name"]')).toBeFocused();

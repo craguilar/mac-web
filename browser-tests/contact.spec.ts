@@ -63,7 +63,7 @@ test.afterEach(async({page},testInfo)=>{
  }
 });
 for(const language of ['es','en'] as const){
- test(`${language}: mobile form, consent, failed delivery and a single accepted lead`,async({page})=>{
+ test(`${language}: mobile form, consent, failed delivery and a single accepted lead`,async({page},testInfo)=>{
   const f=await fixture(page);
   await page.goto(origin+(language==='en'?'/en/':'/')+'?private=never-track');
   await expect(page.locator('html')).toHaveAttribute('lang',language);
@@ -96,5 +96,17 @@ for(const language of ['es','en'] as const){
   await expect(page.locator('iframe[src="/analytics.html"]')).toHaveCount(0);
   expect(await page.evaluate(()=>(window as unknown as {violations:string[]}).violations)).toEqual([]);
   expect(f.unexpected).toEqual([]);expect(f.errors).toEqual([]);
+  // WebKit's screenshot helper injects a style; capture only after CSP assertions.
+  await page.goto(origin+(language==='en'?'/en/':'/'));
+  await page.evaluate(()=>document.fonts.ready);
+  const viewport=page.viewportSize()!;
+  await page.locator('.hero').screenshot({path:testInfo.outputPath('mobile-hero.png')});
+  await page.setViewportSize({width:320,height:viewport.height});
+  await page.locator('.hero').screenshot({path:testInfo.outputPath('narrow-mobile-hero.png')});
+  if(language==='es'&&testInfo.project.name==='android-chromium'){
+   await page.setViewportSize({width:1280,height:900});
+   await page.locator('.hero').screenshot({path:testInfo.outputPath('wide-hero.png')});
+  }
+  await page.setViewportSize(viewport);
  });
 }
