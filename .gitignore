@@ -11,3 +11,6 @@ coverage/
 .amplify/
 amplify_outputs.json
 cdk.out/
+
+playwright-report/
+test-results/

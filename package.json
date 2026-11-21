@@ -6,7 +6,8 @@
   "scripts": {
     "check": "tsc --project tsconfig.json",
     "test": "npm run build && node --import tsx --test tests/*.test.ts",
-    "build": "node --import tsx scripts/build.ts"
+    "build": "node --import tsx scripts/build.ts",
+    "test:browser": "playwright test"
   },
   "engines": {
     "node": ">=24"
@@ -21,10 +22,22 @@
     "esbuild": "0.28.2",
     "linkedom": "0.18.12",
     "tsx": "4.23.15",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "yaml": "2.9.1",
+    "@playwright/test": "1.65.1"
   },
   "dependencies": {
     "@aws-sdk/client-sesv2": "3.1172.0"
+  },
+  "overrides": {
+    "handlebars@<4.7.10": "4.7.10",
+    "lodash@<4.18.1": "4.18.1",
+    "immutable@<3.8.4": "3.8.4",
+    "@graphql-tools/utils@<=12.0.0": "12.1.0",
+    "minimatch@>=7.0.0 <11.0.1": "11.0.9",
+    "glob@>=9.0.0 <=14.0.1": "14.0.6",
+    "@graphql-tools/schema@<10.1.5": "10.1.5",
+    "@graphql-tools/merge@<9.2.8": "9.2.8"
   },
   "type": "module"
 }

@@ -5,8 +5,8 @@ import {readConsent,saveConsent,type ConsentChoice,type ConsentStorage} from './
 import type {Language} from './contact-validation.ts';
 
 const copy={
- es:{title:'Tú decides sobre la analítica',description:'Con tu permiso, usamos Google Analytics para entender las visitas y las consultas enviadas. No incluimos tu nombre, correo ni mensaje. Puedes rechazar o cambiar tu decisión cuando quieras.',accept:'Aceptar analítica',reject:'Rechazar analítica',preferences:'Preferencias de analítica',allowed:'Analítica permitida.',denied:'Analítica desactivada.',close:'Cerrar',temporary:'No pudimos guardar tu elección; solo se aplicará a esta visita.'},
- en:{title:'You choose whether to allow analytics',description:'With your permission, we use Google Analytics to understand visits and submitted inquiries. We do not include your name, email, or message. You can decline or change your choice at any time.',accept:'Accept analytics',reject:'Reject analytics',preferences:'Analytics preferences',allowed:'Analytics allowed.',denied:'Analytics disabled.',close:'Close',temporary:'Your choice could not be saved; it applies only to this visit.'}
+ es:{title:'Analítica opcional',description:'Si aceptas, usamos Google Analytics para mejorar el sitio. No enviamos tu nombre, correo ni mensaje a Google. Puedes cambiar de opinión cuando quieras.',accept:'Aceptar',reject:'Rechazar',preferences:'Preferencias de analítica',allowed:'Analítica permitida.',denied:'Analítica desactivada.',close:'Cerrar',temporary:'No pudimos guardar tu elección; solo se aplicará a esta visita.'},
+ en:{title:'Optional analytics',description:'With your permission, we use Google Analytics to improve this site. We don’t send your name, email address, or message to Google. You can change your mind at any time.',accept:'Accept analytics',reject:'Reject analytics',preferences:'Analytics preferences',allowed:'Analytics allowed.',denied:'Analytics disabled.',close:'Close',temporary:'Your choice could not be saved; it applies only to this visit.'}
 };
 export function createAnalyticsUi(initialLanguage:Language){
  const config=window.macAnalyticsConfig??{};

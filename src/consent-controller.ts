@@ -22,8 +22,9 @@ export interface ConsentOptions {policy:typeof analyticsPolicy; config:Analytics
         if (!active || consent!=='granted' || !policy.activationAllowed(config,location,consent)) return false;
         const event=policy.eventPayload(name,values);
         if (!event) return false;
-        adapter.send(event);
-        return true;
+        // Optional telemetry must never interrupt a successful contact flow.
+        try { adapter.send(event); return true; }
+        catch { try { stop(); } catch { /* Remain inactive if cleanup also fails. */ } return false; }
       },
       dispose() { consent='denied'; if(active) stop(); }
     });
